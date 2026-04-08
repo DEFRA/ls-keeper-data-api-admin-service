@@ -13,13 +13,13 @@ describe('#homeController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  test('Should provide expected response', async () => {
-    const { result, statusCode } = await server.inject({
+  test('Should redirect to login when not authenticated', async () => {
+    const { statusCode, headers } = await server.inject({
       method: 'GET',
       url: '/'
     })
 
-    expect(result).toEqual(expect.stringContaining('Home |'))
-    expect(statusCode).toBe(statusCodes.ok)
+    expect(statusCode).toBe(statusCodes.redirect)
+    expect(headers.location).toBe('/auth/login')
   })
 })

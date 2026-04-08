@@ -1,0 +1,1722 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Livestock Keeper Data API (Public)",
+    "description": "The Livestock Keeper Data API is a reference data service that allows developers to build applications that connect with Defra's Livestock - Location and Party Data domain.\n\nWith the Livestock Keeper Data API, you can:\n\n* **Authenticate** with Defra's identity system using Bearer (JWT) or Basic authentication.\n* **Retrieve** location-based reference data such as Sites and its related data such as Parties, Species, Marks etc.\n* **Retrieve** reference data for Parties and related information.\n* **Trigger** data import scans (internal, feature-gated).\n* **Manage** dead letter queue messages (internal, feature-gated).\n\nAll list endpoints support **Change Data Capture (CDC)** via the `lastUpdatedDate` query parameter, returning only records updated since the provided timestamp.\n\nAll list endpoints return paginated results with `count`, `totalCount`, `values`, `page`, `pageSize`, `totalPages`, `hasNextPage`, and `hasPreviousPage` fields.",
+    "termsOfService": "https://www.defra.gov.uk/legal",
+    "contact": {
+      "name": "Defra Livestock Data Services Support",
+      "url": "https://www.defra.gov.uk/support",
+      "email": "support_cdp_platform@defra.gov.uk"
+    },
+    "license": {
+      "name": "Livestock Data Services Agreement",
+      "url": "https://www.defra.gov.uk/services-agreement/"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/Parties": {
+      "get": {
+        "tags": ["party"],
+        "summary": "Retrieve a list of parties.",
+        "description": "The endpoint allows searching and retrieving a list of parties. Supports filtering by name, email, and Change Data Capture (CDC) via the lastUpdatedDate parameter.",
+        "parameters": [
+          {
+            "name": "FirstName",
+            "in": "query",
+            "description": "Filter parties by first name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "LastName",
+            "in": "query",
+            "description": "Filter parties by last name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Email",
+            "in": "query",
+            "description": "Filter parties by email address.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "LastUpdatedDate",
+            "in": "query",
+            "description": "Returns only records that have been updated since the provided timestamp (greater than or equal to). This is the key parameter for Change Data Capture (CDC).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "description": "Page number (1-based). Defaults to 1.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "Number of records per page. Defaults to 10.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Order",
+            "in": "query",
+            "description": "The field to order the results by. Available fields for sorting: id (sorts by id), name. Defaults to name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "description": "The sort direction. Available values: asc, desc. Defaults to asc.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Cursor",
+            "in": "query",
+            "description": "The cursor for the next page of results. Leave blank for the first page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDocumentPaginatedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request was malformed or could not be processed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is not set or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The requestor is not authorized to perform this operation on the resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server encountered an unexpected error"
+          }
+        }
+      }
+    },
+    "/api/Parties/{id}": {
+      "get": {
+        "tags": ["party"],
+        "summary": "Retrieve details of a party.",
+        "description": "The endpoint allows to retrieve details of a given party, including their communication details, correspondence address, and roles.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier (UUID) of the party.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is not set or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The requestor is not authorized to perform this operation on the resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server encountered an unexpected error"
+          }
+        }
+      }
+    },
+    "/api/Sites": {
+      "get": {
+        "tags": ["site"],
+        "summary": "Retrieve a list of available sites",
+        "description": "Endpoint created to retrieve a list of sites. Parameters can be set to filter by various elements such as Site Identifiers, Site Type, Site Id, Party Id etc. Supports Change Data Capture (CDC) via the lastUpdatedDate parameter.",
+        "parameters": [
+          {
+            "name": "SiteIdentifier",
+            "in": "query",
+            "description": "Filter by a single site identifier such as CPH Number, FSA No, Port No etc.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SiteIdentifiers",
+            "in": "query",
+            "description": "Filter by multiple site identifiers (comma-separated). A maximum number of values applies.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Type",
+            "in": "query",
+            "description": "Filter by site type code (comma-separated). Possible site type codes include:\nAC (Assembly Centre), AH (Agricultural Holding), AP (Airport), CA (Calf Collection Centre),\nCC (Collection Centre), CL (Common Land), HA (Haulier), HK (Hunt Kennel),\nKY (Knacker's Yard), LA (Lairage), LR (Laboratory/Research), MA (Market),\nQU (Quarantine), SG (Showground), SM (S/H Both MP and Cs), SP (Seaport),\nSR (Slaughter House Red Meat), ST (Staging Post), SW (Slaughter House White Meat),\nVE (Veterinary Practice), VI (Veterinary Investigation Centre), WP (Wildlife Park), ZO (Zoo).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SiteId",
+            "in": "query",
+            "description": "Filter by a single site ID (UUID).",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SiteIds",
+            "in": "query",
+            "description": "Filter by multiple site IDs (comma-separated UUIDs). A maximum number of values applies.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "KeeperPartyId",
+            "in": "query",
+            "description": "Filter sites by a keeper party ID (UUID).",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "LastUpdatedDate",
+            "in": "query",
+            "description": "Returns only records that have been updated since the provided timestamp (greater than or equal to). This is the key parameter for Change Data Capture (CDC).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "description": "Page number (1-based). Defaults to 1.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "Number of records per page. Defaults to 10.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Order",
+            "in": "query",
+            "description": "The field to order the results by. Available fields for sorting: name, type, siteidentifier. Defaults to name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "description": "The sort direction. Available values: asc, desc. Defaults to asc.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Cursor",
+            "in": "query",
+            "description": "The cursor for the next page of results. Leave blank for the first page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteDocumentPaginatedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request was malformed or could not be processed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is not set or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The requestor is not authorized to perform this operation on the resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server encountered an unexpected error"
+          }
+        }
+      }
+    },
+    "/api/Sites/{id}": {
+      "get": {
+        "tags": ["site"],
+        "summary": "Retrieve a site's detailed information.",
+        "description": "The endpoint returns an object containing the requested site's full detailed information, including location, identifiers, parties, species, marks, and activities.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier (UUID) of the site.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Successful request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is not set or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The requestor is not authorized to perform this operation on the resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server encountered an unexpected error"
+          }
+        }
+      }
+    },
+    "/api/Countries": {
+      "get": {
+        "tags": ["site reference"],
+        "summary": "Retrieve a list of ISO Countries",
+        "description": "Endpoint created to retrieve a list of ISO Countries. Parameters can be set to filter by name, code, EU trade membership, and devolved authority status. Supports Change Data Capture (CDC) via the lastUpdatedDate parameter.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "description": "Page number (1-based). Defaults to 1.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "Number of records per page. Defaults to 10.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Order",
+            "in": "query",
+            "description": "The field to order the results by. Available fields for sorting: name, code. Defaults to code.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "description": "The sort direction. Available values: asc, desc. Defaults to asc.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Name",
+            "in": "query",
+            "description": "Filter countries by name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Code",
+            "in": "query",
+            "description": "Filter countries by code. Accepts a comma-separated list of country codes.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "EuTradeMember",
+            "in": "query",
+            "description": "Filter by EU trade membership flag.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "DevolvedAuthority",
+            "in": "query",
+            "description": "Filter by devolved authority flag.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "LastUpdatedDate",
+            "in": "query",
+            "description": "Returns only records that have been updated since the provided timestamp (greater than or equal to). This is the key parameter for Change Data Capture (CDC).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryDTOPaginatedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request was malformed or could not be processed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is not set or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The requestor is not authorized to perform this operation on the resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server encountered an unexpected error"
+          }
+        }
+      }
+    },
+    "/api/Countries/{id}": {
+      "get": {
+        "tags": ["site reference"],
+        "summary": "Retrieve a country's detailed information.",
+        "description": "The endpoint returns an object containing the requested country detailed information.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier (UUID) of the country.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Successful request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryDTO"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is not set or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The requestor is not authorized to perform this operation on the resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server encountered an unexpected error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddressDocument": {
+        "required": ["addressLine1", "id", "postcode"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "uprn": {
+            "type": "integer",
+            "description": "The Unique Property Reference Number.",
+            "format": "int32",
+            "nullable": true,
+            "example": 671544009
+          },
+          "addressLine1": {
+            "type": "string",
+            "description": "This single address line is associated with the OS Address Base Fields such as SAO_TEXT, SAO_START_NUMBER, PAO_TEXT, PAO_START_NUMBER and STREET_DESCRIPTION.",
+            "nullable": true,
+            "example": "Hansel & Gretel Farm, Pigs Street"
+          },
+          "addressLine2": {
+            "type": "string",
+            "description": "This optional field is associated with the OS Address Base Field of LOCALITY, if applicable.",
+            "nullable": true,
+            "example": "Cloverfield"
+          },
+          "postTown": {
+            "type": "string",
+            "description": "This field describes the Town or City of the Address. It is aligned to the OS Address Base Field of POST_TOWN.",
+            "nullable": true,
+            "example": "Clover town"
+          },
+          "county": {
+            "type": "string",
+            "description": "This optional field is associated with the OS Address Base Field of ADMINISTRATIVE_AREA.",
+            "nullable": true,
+            "example": "Sussex"
+          },
+          "postcode": {
+            "type": "string",
+            "description": "The postal code.",
+            "nullable": true,
+            "example": "S36 2BS"
+          },
+          "country": {
+            "$ref": "#/components/schemas/CountrySummaryDocument"
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Address record was updated.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CommunicationDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address.",
+            "nullable": true,
+            "example": "john.doe@somecompany.co.uk"
+          },
+          "mobile": {
+            "type": "string",
+            "description": "The mobile phone number.",
+            "nullable": true,
+            "example": "07123456789"
+          },
+          "landline": {
+            "type": "string",
+            "description": "The landline phone number.",
+            "nullable": true,
+            "example": "0114 1231234"
+          },
+          "primaryContactFlag": {
+            "type": "boolean",
+            "description": "Indicates whether this is the primary contact.",
+            "nullable": true,
+            "example": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Communication record was updated.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CountryDTO": {
+        "required": ["code", "id", "name"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the reference object.",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "description": "This the business code/key of the Country object. This is a mutable field, where this field data could possibly change.",
+            "nullable": true,
+            "example": "GB-ENG"
+          },
+          "name": {
+            "type": "string",
+            "description": "This the business name of the Country object. This is a mutable field, where this field data could possibly change.",
+            "nullable": true,
+            "example": "England"
+          },
+          "longName": {
+            "type": "string",
+            "description": "The long name of the country.",
+            "nullable": true,
+            "example": "England - United Kingdom"
+          },
+          "euTradeMemberFlag": {
+            "type": "boolean",
+            "description": "Indicates whether the country is an EU trade member.",
+            "example": true
+          },
+          "devolvedAuthorityFlag": {
+            "type": "boolean",
+            "description": "Indicates whether the country is a devolved authority.",
+            "example": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Country record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "An ISO country reference record."
+      },
+      "CountryDTOPaginatedResult": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of items on the current page.",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of items across all pages.",
+            "format": "int32"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountryDTO"
+            },
+            "description": "The items on the current page.",
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "description": "The current page number (1-based).",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "The number of items per page.",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "The total number of pages.",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Whether there is a next page available.",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Whether there is a previous page available.",
+            "readOnly": true
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A paginated result containing a subset of items and pagination metadata."
+      },
+      "CountrySummaryDocument": {
+        "required": ["code", "id", "name"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the reference object.",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "description": "The country code.",
+            "nullable": true,
+            "example": "GB-ENG"
+          },
+          "name": {
+            "type": "string",
+            "description": "The country name.",
+            "nullable": true,
+            "example": "England"
+          },
+          "longName": {
+            "type": "string",
+            "description": "The long name of the country.",
+            "nullable": true,
+            "example": "England - United Kingdom"
+          },
+          "euTradeMemberFlag": {
+            "type": "boolean",
+            "description": "Indicates whether the country is an EU trade member."
+          },
+          "devolvedAuthorityFlag": {
+            "type": "boolean",
+            "description": "Indicates whether the country is a devolved authority."
+          },
+          "lastModifiedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Country record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A lightweight country summary embedded within address records."
+      },
+      "GroupMarkDocument": {
+        "required": ["id", "mark"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "mark": {
+            "type": "string",
+            "description": "The herd/flock/group mark identifier.",
+            "nullable": true,
+            "example": "564545"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "The date the herd/flock/group mark was assigned.",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "The date the herd/flock/group mark was removed.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "species": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpeciesSummaryDocument"
+            },
+            "description": "The species associated with this mark.",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the GroupMark record was updated.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LocationDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "osMapReference": {
+            "type": "string",
+            "description": "The Ordnance Survey map reference for the location.",
+            "nullable": true,
+            "example": "SK25979936"
+          },
+          "easting": {
+            "type": "number",
+            "description": "The easting coordinate.",
+            "format": "double",
+            "nullable": true,
+            "example": 425978.12
+          },
+          "northing": {
+            "type": "number",
+            "description": "The northing coordinate.",
+            "format": "double",
+            "nullable": true,
+            "example": 399361.5
+          },
+          "address": {
+            "$ref": "#/components/schemas/AddressDocument"
+          },
+          "communication": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommunicationDocument"
+            },
+            "description": "The communication details for the location.",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Location record was updated.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagedSpeciesDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "description": "The species code.",
+            "nullable": true,
+            "example": "CTT"
+          },
+          "name": {
+            "type": "string",
+            "description": "The species name.",
+            "nullable": true,
+            "example": "Cattle"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "The date the said species came under the care of the said Role.",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "The date the said species left the care of the said Role.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the ManagedSpecies record was updated.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PartyDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Party record was updated.",
+            "format": "date-time"
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the party (e.g. Mr, Mrs).",
+            "nullable": true,
+            "example": "Mr"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "The first name of the party.",
+            "nullable": true,
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "The last name of the party.",
+            "nullable": true,
+            "example": "Doe"
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name of the party.",
+            "nullable": true,
+            "example": "John Doe"
+          },
+          "customerNumber": {
+            "type": "string",
+            "description": "This is the L or the C number provided from the SAM system.",
+            "nullable": true,
+            "example": "C77473"
+          },
+          "partyType": {
+            "type": "string",
+            "description": "The type of party (e.g. Person, Organisation).",
+            "nullable": true,
+            "example": "Person"
+          },
+          "state": {
+            "type": "string",
+            "description": "The current state of the party.",
+            "nullable": true
+          },
+          "communication": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommunicationDocument"
+            },
+            "description": "The communication details of the party.",
+            "nullable": true
+          },
+          "correspondanceAddress": {
+            "$ref": "#/components/schemas/AddressDocument"
+          },
+          "partyRoles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyRoleWithSiteDocument"
+            },
+            "description": "The roles assigned to the party, including site associations.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PartyDocumentPaginatedResult": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of items on the current page.",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of items across all pages.",
+            "format": "int32"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyDocument"
+            },
+            "description": "The items on the current page.",
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "description": "The current page number (1-based).",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "The number of items per page.",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "The total number of pages.",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Whether there is a next page available.",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Whether there is a previous page available.",
+            "readOnly": true
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A paginated result containing a subset of items and pagination metadata."
+      },
+      "PartyRoleDocument": {
+        "required": ["id", "role"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "role": {
+            "$ref": "#/components/schemas/PartyRoleRoleDocument"
+          },
+          "speciesManagedByRole": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedSpeciesDocument"
+            },
+            "description": "The list of species managed by the said Role assigned to the said Party.",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Party Role record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A role assigned to a party, with species managed under that role."
+      },
+      "PartyRoleRoleDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the reference object.",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "description": "This is the unique code assigned to the Role entity.",
+            "nullable": true,
+            "example": "LIVESTOCKKEEPER"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the role.",
+            "nullable": true,
+            "example": "Livestock Keeper"
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Role record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PartyRoleSiteDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the site.",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/PremisesTypeSummaryDocument"
+          },
+          "state": {
+            "type": "string",
+            "description": "The current state of the site.",
+            "nullable": true
+          },
+          "identifiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteIdentifierDocument"
+            },
+            "description": "The identifiers associated with this site.",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the PartyRoleSite record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A lightweight site summary embedded within a party's role."
+      },
+      "PartyRoleWithSiteDocument": {
+        "required": ["id", "role"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "site": {
+            "$ref": "#/components/schemas/PartyRoleSiteDocument"
+          },
+          "role": {
+            "$ref": "#/components/schemas/PartyRoleRoleDocument"
+          },
+          "speciesManagedByRole": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedSpeciesDocument"
+            },
+            "description": "The list of species managed by the said Role assigned to the said Party.",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Roles To Party record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A role assigned to a party, with optional site association and species managed under that role."
+      },
+      "PremisesActivityTypeSummaryDocument": {
+        "required": ["code", "id", "name"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the reference object.",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "description": "The activity type code.",
+            "nullable": true,
+            "example": "WP"
+          },
+          "name": {
+            "type": "string",
+            "description": "The activity type name.",
+            "nullable": true,
+            "example": "Wildlife Park"
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the SiteActivityType record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "The type of activity associated with a site."
+      },
+      "PremisesTypeSummaryDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the reference object.",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "description": "The business key/code values for a siteType.",
+            "nullable": true,
+            "example": "AH"
+          },
+          "name": {
+            "type": "string",
+            "description": "The type of site an animal may reside at.",
+            "nullable": true,
+            "example": "Agricultural Holding"
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the SiteType record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "The type of site an animal may reside at."
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {}
+      },
+      "SiteActivityDocument": {
+        "required": ["id", "type"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/PremisesActivityTypeSummaryDocument"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "The start date of the activity.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "description": "The end date of the activity.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the SiteActivity record was updated.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SiteDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Site record was updated.",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PremisesTypeSummaryDocument"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the site.",
+            "nullable": true,
+            "example": "Hansel & Gretel Farm"
+          },
+          "state": {
+            "type": "string",
+            "description": "The current state of the site.",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "description": "The date the site was established.",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "The date the site was decommissioned, if applicable.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "description": "The source system of the data (e.g. SAM, CTS).",
+            "nullable": true,
+            "example": "SAM"
+          },
+          "destroyIdentityDocumentsFlag": {
+            "type": "boolean",
+            "description": "Indicates whether identity documents should be destroyed for this site.",
+            "nullable": true
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationDocument"
+          },
+          "identifiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteIdentifierDocument"
+            },
+            "description": "The identifiers associated with this site (e.g. CPH Number).",
+            "nullable": true
+          },
+          "parties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SitePartyDocument"
+            },
+            "description": "The parties associated with this site.",
+            "nullable": true
+          },
+          "species": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpeciesSummaryDocument"
+            },
+            "description": "The species registered at this site.",
+            "nullable": true
+          },
+          "marks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupMarkDocument"
+            },
+            "description": "The herd/flock/group marks associated with this site.",
+            "nullable": true
+          },
+          "activities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteActivityDocument"
+            },
+            "description": "The activities associated with this site.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SiteDocumentPaginatedResult": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of items on the current page.",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of items across all pages.",
+            "format": "int32"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteDocument"
+            },
+            "description": "The items on the current page.",
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "description": "The current page number (1-based).",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "The number of items per page.",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "The total number of pages.",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Whether there is a next page available.",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Whether there is a previous page available.",
+            "readOnly": true
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A paginated result containing a subset of items and pagination metadata."
+      },
+      "SiteIdentifierDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "identifier": {
+            "type": "string",
+            "description": "The site identifier value (e.g. CPH Number).",
+            "nullable": true,
+            "example": "57/103/2335"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SiteIdentifierSummaryDocument"
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the SiteIdentifier record was updated.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SiteIdentifierSummaryDocument": {
+        "required": ["code", "id", "name"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the reference object.",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "description": "The business key/code values for a Site Identifier Type.",
+            "nullable": true,
+            "example": "CPHN"
+          },
+          "name": {
+            "type": "string",
+            "description": "The type which identifies the site identifier.",
+            "nullable": true,
+            "example": "CPH Number"
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the SiteIdentifier Type record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "The type which identifies the site identifier."
+      },
+      "SitePartyDocument": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the master data object.",
+            "nullable": true
+          },
+          "customerNumber": {
+            "type": "string",
+            "description": "This is the L or the C number provided from the SAM system.",
+            "nullable": true,
+            "example": "C77473"
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the party (e.g. Mr, Mrs).",
+            "nullable": true,
+            "example": "Mr"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "The first name of the party.",
+            "nullable": true,
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "The last name of the party.",
+            "nullable": true,
+            "example": "Doe"
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name of the party.",
+            "nullable": true,
+            "example": "John Doe"
+          },
+          "partyType": {
+            "type": "string",
+            "description": "The type of party (e.g. Person, Organisation).",
+            "nullable": true,
+            "example": "Person"
+          },
+          "state": {
+            "type": "string",
+            "description": "The current state of the party.",
+            "nullable": true
+          },
+          "lastUpdatedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Site Party record was updated.",
+            "format": "date-time"
+          },
+          "communication": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommunicationDocument"
+            },
+            "description": "The communication details of the party.",
+            "nullable": true
+          },
+          "correspondanceAddress": {
+            "$ref": "#/components/schemas/AddressDocument"
+          },
+          "partyRoles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyRoleDocument"
+            },
+            "description": "The roles assigned to the party.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A party associated with a site, containing their contact details, address and roles."
+      },
+      "SpeciesSummaryDocument": {
+        "required": ["code", "id", "name"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This is an immutable field which represents the golden key of the reference object.",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "description": "The species code.",
+            "nullable": true,
+            "example": "CTT"
+          },
+          "name": {
+            "type": "string",
+            "description": "The species name.",
+            "nullable": true,
+            "example": "Cattle"
+          },
+          "lastModifiedDate": {
+            "type": "string",
+            "description": "The timestamp of the last time the Species record was updated.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A lightweight species reference embedded within site and mark records."
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "JWT authorisation token",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "Basic": {
+        "type": "http",
+        "description": "Basic authentication credentials",
+        "scheme": "basic"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [],
+      "Basic": []
+    }
+  ]
+}

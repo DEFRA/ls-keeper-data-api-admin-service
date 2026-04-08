@@ -1,0 +1,92 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">Unable to connect to the backend API.</p>'
+    }) }}
+  {% endif %}
+
+  <form method="get" action="/parties" class="govuk-!-margin-bottom-6">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-quarter">
+        {{ govukInput({
+          label: { text: "First name" },
+          id: "FirstName",
+          name: "FirstName",
+          value: filters.FirstName
+        }) }}
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        {{ govukInput({
+          label: { text: "Last name" },
+          id: "LastName",
+          name: "LastName",
+          value: filters.LastName
+        }) }}
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        {{ govukInput({
+          label: { text: "Email" },
+          id: "Email",
+          name: "Email",
+          value: filters.Email
+        }) }}
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        {{ govukInput({
+          label: { text: "Changes since" },
+          id: "LastUpdatedDate",
+          name: "LastUpdatedDate",
+          value: filters.LastUpdatedDate,
+          type: "date"
+        }) }}
+      </div>
+    </div>
+
+    {{ govukButton({
+      text: "Search"
+    }) }}
+  </form>
+
+  {% if parties.length > 0 %}
+    <p class="govuk-body">Showing page {{ pagination.page }} of {{ pagination.totalPages }} ({{ pagination.totalCount }} total)</p>
+
+    <table class="govuk-table">
+      <thead class="govuk-table__header">
+        <tr class="govuk-table__row">
+          <th class="govuk-table__header" scope="col">Name</th>
+          <th class="govuk-table__header" scope="col">Type</th>
+          <th class="govuk-table__header" scope="col">Customer number</th>
+          <th class="govuk-table__header" scope="col">State</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for party in parties %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">
+              <a class="govuk-link" href="/parties/{{ party.id }}">{{ party.name }}</a>
+            </td>
+            <td class="govuk-table__cell">{{ party.type }}</td>
+            <td class="govuk-table__cell">{{ party.customerNumber }}</td>
+            <td class="govuk-table__cell">{{ party.state }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% include "partials/pagination.njk" %}
+  {% else %}
+    <p class="govuk-body">No parties found</p>
+  {% endif %}
+{% endblock %}

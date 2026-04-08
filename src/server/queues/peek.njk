@@ -1,0 +1,73 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">Unable to connect to the backend API.</p>'
+    }) }}
+  {% endif %}
+
+  <form method="get" action="/queues/dead-letter/peek">
+    {{ govukInput({
+      label: { text: "Max messages (1-10)" },
+      id: "maxMessages",
+      name: "maxMessages",
+      value: maxMessages,
+      classes: "govuk-input--width-4",
+      inputmode: "numeric"
+    }) }}
+
+    {{ govukButton({
+      text: "Peek"
+    }) }}
+  </form>
+
+  <p class="govuk-body">Approximate total in queue: <strong>{{ result.totalApproximateCount }}</strong></p>
+
+  {% if result.messages.length > 0 %}
+    <table class="govuk-table">
+      <thead class="govuk-table__header">
+        <tr class="govuk-table__row">
+          <th class="govuk-table__header" scope="col">Message ID</th>
+          <th class="govuk-table__header" scope="col">Type</th>
+          <th class="govuk-table__header" scope="col">Sent</th>
+          <th class="govuk-table__header" scope="col">Correlation ID</th>
+          <th class="govuk-table__header" scope="col">Body</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for m in result.messages %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">{{ m.messageId | truncate(8, true, '') if m.messageId else "—" }}</td>
+            <td class="govuk-table__cell">{{ m.messageType or "—" }}</td>
+            <td class="govuk-table__cell">{{ m.sentTimestamp | formatDate if m.sentTimestamp else "—" }}</td>
+            <td class="govuk-table__cell">{{ m.correlationId | truncate(8, true, '') if m.correlationId else "—" }}</td>
+            <td class="govuk-table__cell">
+              {% if m.body %}
+                {{ govukDetails({
+                  summaryText: "View body",
+                  text: m.body
+                }) }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="govuk-body">No messages found</p>
+  {% endif %}
+{% endblock %}

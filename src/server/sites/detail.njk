@@ -1,0 +1,172 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">Unable to connect to the backend API.</p>'
+    }) }}
+  {% endif %}
+
+  {% if site %}
+    <h2 class="govuk-heading-m">Details</h2>
+    {{ govukSummaryList({
+      rows: [
+        { key: { text: "ID" }, value: { text: site.id } },
+        { key: { text: "Type" }, value: { text: site.type or "—" } },
+        { key: { text: "State" }, value: { text: site.state or "—" } },
+        { key: { text: "Source" }, value: { text: site.source or "—" } },
+        { key: { text: "Last updated" }, value: { text: site.lastUpdatedDate | formatDate if site.lastUpdatedDate else "—" } },
+        { key: { text: "Destroy identity documents" }, value: { text: "Yes" if site.destroyIdentityDocumentsFlag else "No" } }
+      ]
+    }) }}
+
+    {% if site.location %}
+      <h2 class="govuk-heading-m">Location</h2>
+      {% set locationRows = [
+        { key: { text: "OS map ref" }, value: { text: site.location.osMapReference or "—" } },
+        { key: { text: "Easting" }, value: { text: site.location.easting or "—" } },
+        { key: { text: "Northing" }, value: { text: site.location.northing or "—" } }
+      ] %}
+      {% if site.location.address %}
+        {% set locationRows = locationRows.concat([
+          { key: { text: "Address line 1" }, value: { text: site.location.address.addressLine1 or "—" } },
+          { key: { text: "Address line 2" }, value: { text: site.location.address.addressLine2 or "—" } },
+          { key: { text: "Town" }, value: { text: site.location.address.postTown or "—" } },
+          { key: { text: "County" }, value: { text: site.location.address.county or "—" } },
+          { key: { text: "Postcode" }, value: { text: site.location.address.postcode or "—" } },
+          { key: { text: "Country" }, value: { text: site.location.address.country or "—" } }
+        ]) %}
+      {% endif %}
+      {{ govukSummaryList({ rows: locationRows }) }}
+    {% endif %}
+
+    {% if site.identifiers.length > 0 %}
+      <h2 class="govuk-heading-m">Identifiers</h2>
+      <table class="govuk-table">
+        <thead class="govuk-table__header">
+          <tr class="govuk-table__row">
+            <th class="govuk-table__header" scope="col">Identifier</th>
+            <th class="govuk-table__header" scope="col">Type code</th>
+            <th class="govuk-table__header" scope="col">Type name</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for i in site.identifiers %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ i.identifier }}</td>
+              <td class="govuk-table__cell">{{ i.typeCode or "—" }}</td>
+              <td class="govuk-table__cell">{{ i.typeName or "—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {% if site.parties.length > 0 %}
+      <h2 class="govuk-heading-m">Parties</h2>
+      <table class="govuk-table">
+        <thead class="govuk-table__header">
+          <tr class="govuk-table__row">
+            <th class="govuk-table__header" scope="col">Name</th>
+            <th class="govuk-table__header" scope="col">Customer number</th>
+            <th class="govuk-table__header" scope="col">Type</th>
+            <th class="govuk-table__header" scope="col">Roles</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for p in site.parties %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">
+                <a class="govuk-link" href="/parties/{{ p.id }}">{{ p.name }}</a>
+              </td>
+              <td class="govuk-table__cell">{{ p.customerNumber or "—" }}</td>
+              <td class="govuk-table__cell">{{ p.type or "—" }}</td>
+              <td class="govuk-table__cell">{{ p.roles or "—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {% if site.species.length > 0 %}
+      <h2 class="govuk-heading-m">Species</h2>
+      <table class="govuk-table">
+        <thead class="govuk-table__header">
+          <tr class="govuk-table__row">
+            <th class="govuk-table__header" scope="col">Code</th>
+            <th class="govuk-table__header" scope="col">Name</th>
+            <th class="govuk-table__header" scope="col">Start date</th>
+            <th class="govuk-table__header" scope="col">End date</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for sp in site.species %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ sp.speciesCode or "—" }}</td>
+              <td class="govuk-table__cell">{{ sp.speciesName or "—" }}</td>
+              <td class="govuk-table__cell">{{ sp.startDate | formatDate if sp.startDate else "—" }}</td>
+              <td class="govuk-table__cell">{{ sp.endDate | formatDate if sp.endDate else "—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {% if site.marks.length > 0 %}
+      <h2 class="govuk-heading-m">Marks</h2>
+      <table class="govuk-table">
+        <thead class="govuk-table__header">
+          <tr class="govuk-table__row">
+            <th class="govuk-table__header" scope="col">Mark</th>
+            <th class="govuk-table__header" scope="col">Species</th>
+            <th class="govuk-table__header" scope="col">Start date</th>
+            <th class="govuk-table__header" scope="col">End date</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for m in site.marks %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ m.mark }}</td>
+              <td class="govuk-table__cell">{{ m.species or "—" }}</td>
+              <td class="govuk-table__cell">{{ m.startDate | formatDate if m.startDate else "—" }}</td>
+              <td class="govuk-table__cell">{{ m.endDate | formatDate if m.endDate else "—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {% if site.activities.length > 0 %}
+      <h2 class="govuk-heading-m">Activities</h2>
+      <table class="govuk-table">
+        <thead class="govuk-table__header">
+          <tr class="govuk-table__row">
+            <th class="govuk-table__header" scope="col">Type code</th>
+            <th class="govuk-table__header" scope="col">Type name</th>
+            <th class="govuk-table__header" scope="col">Start date</th>
+            <th class="govuk-table__header" scope="col">End date</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for a in site.activities %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ a.typeCode or "—" }}</td>
+              <td class="govuk-table__cell">{{ a.typeName or "—" }}</td>
+              <td class="govuk-table__cell">{{ a.startDate | formatDate if a.startDate else "—" }}</td>
+              <td class="govuk-table__cell">{{ a.endDate | formatDate if a.endDate else "—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  {% endif %}
+{% endblock %}

@@ -9,6 +9,9 @@ async function startServer() {
   server.logger.info(
     `Access your frontend on http://localhost:${config.get('port')}`
   )
+  server.logger.info(
+    `Backend API base URL: ${config.get('api.baseUrl') || '(not set)'}`
+  )
 
   return server
 }

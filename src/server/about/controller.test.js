@@ -13,13 +13,12 @@ describe('#aboutController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  test('Should provide expected response', async () => {
-    const { result, statusCode } = await server.inject({
+  test('About route should no longer exist', async () => {
+    const { statusCode } = await server.inject({
       method: 'GET',
       url: '/about'
     })
 
-    expect(result).toEqual(expect.stringContaining('About |'))
-    expect(statusCode).toBe(statusCodes.ok)
+    expect(statusCode).toBe(statusCodes.notFound)
   })
 })

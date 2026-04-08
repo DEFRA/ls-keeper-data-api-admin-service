@@ -1,0 +1,82 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">Unable to connect to the backend API.</p>'
+    }) }}
+  {% endif %}
+
+  {% if party %}
+    <h2 class="govuk-heading-m">Details</h2>
+    {{ govukSummaryList({
+      rows: [
+        { key: { text: "ID" }, value: { text: party.id } },
+        { key: { text: "Title" }, value: { text: party.title or "—" } },
+        { key: { text: "First name" }, value: { text: party.firstName or "—" } },
+        { key: { text: "Last name" }, value: { text: party.lastName or "—" } },
+        { key: { text: "Type" }, value: { text: party.type or "—" } },
+        { key: { text: "Customer number" }, value: { text: party.customerNumber or "—" } },
+        { key: { text: "State" }, value: { text: party.state or "—" } },
+        { key: { text: "Last updated" }, value: { text: party.lastUpdatedDate | formatDate if party.lastUpdatedDate else "—" } }
+      ]
+    }) }}
+
+    {% if party.communication %}
+      <h2 class="govuk-heading-m">Communication</h2>
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "Email" }, value: { text: party.communication.email or "—" } },
+          { key: { text: "Mobile" }, value: { text: party.communication.mobile or "—" } },
+          { key: { text: "Landline" }, value: { text: party.communication.landline or "—" } },
+          { key: { text: "Primary contact" }, value: { text: "Yes" if party.communication.primaryContactFlag else "No" } }
+        ]
+      }) }}
+    {% endif %}
+
+    {% if party.correspondenceAddress %}
+      <h2 class="govuk-heading-m">Correspondence address</h2>
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "Address line 1" }, value: { text: party.correspondenceAddress.addressLine1 or "—" } },
+          { key: { text: "Address line 2" }, value: { text: party.correspondenceAddress.addressLine2 or "—" } },
+          { key: { text: "Town" }, value: { text: party.correspondenceAddress.postTown or "—" } },
+          { key: { text: "County" }, value: { text: party.correspondenceAddress.county or "—" } },
+          { key: { text: "Postcode" }, value: { text: party.correspondenceAddress.postcode or "—" } },
+          { key: { text: "Country" }, value: { text: party.correspondenceAddress.country or "—" } }
+        ]
+      }) }}
+    {% endif %}
+
+    {% if party.roles.length > 0 %}
+      <h2 class="govuk-heading-m">Roles</h2>
+      <table class="govuk-table">
+        <thead class="govuk-table__header">
+          <tr class="govuk-table__row">
+            <th class="govuk-table__header" scope="col">Role</th>
+            <th class="govuk-table__header" scope="col">Code</th>
+            <th class="govuk-table__header" scope="col">Species managed</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for r in party.roles %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ r.roleName or "—" }}</td>
+              <td class="govuk-table__cell">{{ r.roleCode or "—" }}</td>
+              <td class="govuk-table__cell">{{ r.speciesManaged or "—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  {% endif %}
+{% endblock %}

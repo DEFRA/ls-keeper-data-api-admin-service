@@ -23,7 +23,7 @@ describe('#errors', () => {
     })
 
     expect(result).toEqual(
-      expect.stringContaining('Page not found | ls-keeper-data-api-admin-service')
+      expect.stringContaining('Page not found | Keeper Data API Admin Service')
     )
     expect(statusCode).toBe(statusCodes.notFound)
   })
@@ -57,7 +57,9 @@ describe('#catchAll', () => {
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
       pageTitle: 'Page not found',
       heading: statusCodes.notFound,
-      message: 'Page not found'
+      message: 'Page not found',
+      detail: undefined,
+      stack: mockStack
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.notFound)
   })
@@ -69,7 +71,9 @@ describe('#catchAll', () => {
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
       pageTitle: 'Forbidden',
       heading: statusCodes.forbidden,
-      message: 'Forbidden'
+      message: 'Forbidden',
+      detail: undefined,
+      stack: mockStack
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.forbidden)
   })
@@ -81,7 +85,9 @@ describe('#catchAll', () => {
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
       pageTitle: 'Unauthorized',
       heading: statusCodes.unauthorized,
-      message: 'Unauthorized'
+      message: 'Unauthorized',
+      detail: undefined,
+      stack: mockStack
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.unauthorized)
   })
@@ -93,7 +99,9 @@ describe('#catchAll', () => {
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
       pageTitle: 'Bad Request',
       heading: statusCodes.badRequest,
-      message: 'Bad Request'
+      message: 'Bad Request',
+      detail: undefined,
+      stack: mockStack
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.badRequest)
   })
@@ -105,7 +113,9 @@ describe('#catchAll', () => {
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
       pageTitle: 'Something went wrong',
       heading: statusCodes.imATeapot,
-      message: 'Something went wrong'
+      message: 'Something went wrong',
+      detail: undefined,
+      stack: mockStack
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.imATeapot)
   })
@@ -117,7 +127,9 @@ describe('#catchAll', () => {
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
       pageTitle: 'Something went wrong',
       heading: statusCodes.internalServerError,
-      message: 'Something went wrong'
+      message: 'Something went wrong',
+      detail: undefined,
+      stack: mockStack
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(
       statusCodes.internalServerError

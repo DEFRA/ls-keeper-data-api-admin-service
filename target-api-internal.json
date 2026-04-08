@@ -1,0 +1,495 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Livestock Keeper Data API (Internal)",
+    "description": "Internal endpoints for data ingestion, scanning, and administration.",
+    "contact": {
+      "name": "Defra Livestock Data Services Support",
+      "url": "https://www.defra.gov.uk/support",
+      "email": "support_cdp_platform@defra.gov.uk"
+    },
+    "license": {
+      "name": "Livestock Data Services Agreement",
+      "url": "https://www.defra.gov.uk/services-agreement/"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/admin/queues/deadletter/count": {
+      "get": {
+        "tags": ["Dead Letter Queue"],
+        "summary": "Get dead letter queue message count",
+        "description": "Returns the approximate number of messages in the dead letter queue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/queues/deadletter/peek": {
+      "get": {
+        "tags": ["Dead Letter Queue"],
+        "summary": "Peek at dead letter queue messages",
+        "description": "Retrieves up to 10 messages from the dead letter queue. Maximum allowed: 10 messages per request.",
+        "parameters": [
+          {
+            "name": "maxMessages",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeadLetterMessagesResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/queues/deadletter/redrive": {
+      "post": {
+        "tags": ["Dead Letter Queue"],
+        "summary": "Redrive dead letter queue messages",
+        "description": "Moves up to 10 messages from the dead letter queue back to the main queue for reprocessing. Maximum allowed: 10 messages per request.",
+        "parameters": [
+          {
+            "name": "maxMessages",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedriveSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/queues/deadletter/purge": {
+      "post": {
+        "tags": ["Dead Letter Queue"],
+        "summary": "Purge dead letter queue",
+        "description": "⚠️ DESTRUCTIVE: Permanently deletes all messages from the dead letter queue. This operation cannot be undone.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import/startCtsScan": {
+      "post": {
+        "tags": ["import"],
+        "summary": "Start a CTS scan",
+        "description": "Triggers a CTS scan. Auto-decides bulk vs daily mode based on scan state. Use ?forceBulk=true to force a full bulk scan. Use ?sinceHours=N to scan a custom window.",
+        "parameters": [
+          {
+            "name": "forceBulk",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sinceHours",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartScanResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import/startSamScan": {
+      "post": {
+        "tags": ["import"],
+        "summary": "Start a SAM scan",
+        "description": "Triggers a SAM scan. Auto-decides bulk vs daily mode based on scan state. Use ?forceBulk=true to force a full bulk scan. Use ?sinceHours=N to scan a custom window.",
+        "parameters": [
+          {
+            "name": "forceBulk",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sinceHours",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartScanResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/queues/main/count": {
+      "get": {
+        "tags": ["Main Queue"],
+        "summary": "Get main queue message count",
+        "description": "Returns the approximate number of messages in the main intake queue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/scanstates": {
+      "get": {
+        "tags": ["scan-state"],
+        "summary": "Get scan states",
+        "description": "Retrieves all scan state records showing the history and status of scans",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScanStateDocument"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DeadLetterMessageDto": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The unique identifier of the dead-letter message.",
+            "nullable": true
+          },
+          "correlationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "messageType": {
+            "type": "string",
+            "description": "The type of the original message.",
+            "nullable": true
+          },
+          "body": {
+            "type": "string",
+            "description": "The body content of the dead-letter message.",
+            "nullable": true
+          },
+          "sentTimestamp": {
+            "type": "string",
+            "nullable": true
+          },
+          "approximateFirstReceiveTimestamp": {
+            "type": "string",
+            "nullable": true
+          },
+          "md5OfBody": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A message retrieved from a dead-letter queue."
+      },
+      "DeadLetterMessagesResult": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeadLetterMessageDto"
+            },
+            "description": "The list of dead-letter messages retrieved.",
+            "nullable": true
+          },
+          "totalApproximateCount": {
+            "type": "integer",
+            "description": "The approximate total number of messages remaining in the queue.",
+            "format": "int32"
+          },
+          "checkedAt": {
+            "type": "string",
+            "description": "The timestamp when the messages were retrieved.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "The result of retrieving messages from a dead-letter queue."
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PurgeResult": {
+        "type": "object",
+        "properties": {
+          "purged": {
+            "type": "boolean",
+            "description": "Whether the purge operation was successful."
+          },
+          "approximateMessagesPurged": {
+            "type": "integer",
+            "description": "The approximate number of messages that were purged.",
+            "format": "int32"
+          },
+          "purgedAt": {
+            "type": "string",
+            "description": "The timestamp when the purge operation was performed.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "The result of a dead-letter queue purge operation."
+      },
+      "QueueStats": {
+        "type": "object",
+        "properties": {
+          "queueUrl": {
+            "type": "string",
+            "description": "The URL of the dead-letter queue.",
+            "nullable": true
+          },
+          "approximateMessageCount": {
+            "type": "integer",
+            "description": "The approximate number of messages available for retrieval from the queue.",
+            "format": "int32"
+          },
+          "approximateMessagesNotVisible": {
+            "type": "integer",
+            "description": "The approximate number of messages that are in flight (sent to a consumer but not yet acknowledged).",
+            "format": "int32"
+          },
+          "approximateMessagesDelayed": {
+            "type": "integer",
+            "description": "The approximate number of messages that are delayed and not yet available for reading.",
+            "format": "int32"
+          },
+          "checkedAt": {
+            "type": "string",
+            "description": "The timestamp when the queue statistics were retrieved.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Statistics for a dead-letter queue."
+      },
+      "RedriveSummary": {
+        "type": "object",
+        "properties": {
+          "messagesRedriven": {
+            "type": "integer",
+            "description": "The number of messages successfully redriven to the source queue.",
+            "format": "int32"
+          },
+          "messagesFailed": {
+            "type": "integer",
+            "description": "The number of messages that failed to be redriven.",
+            "format": "int32"
+          },
+          "messagesDuplicated": {
+            "type": "integer",
+            "description": "The number of duplicate messages encountered during redrive.",
+            "format": "int32"
+          },
+          "messagesRemainingApprox": {
+            "type": "integer",
+            "description": "The approximate number of messages remaining in the dead-letter queue after redrive.",
+            "format": "int32"
+          },
+          "correlationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The correlation identifiers of the redriven messages.",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "The timestamp when the redrive operation started.",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "description": "The timestamp when the redrive operation completed.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Summary of a dead-letter queue redrive operation."
+      },
+      "ScanStateDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastSuccessfulScanStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSuccessfulScanCompletedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastScanCorrelationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastScanMode": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastScanItemCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StartScanResponse": {
+        "type": "object",
+        "properties": {
+          "scanCorrelationId": {
+            "type": "string",
+            "description": "The unique correlation identifier for tracking this scan operation.",
+            "format": "uuid"
+          },
+          "message": {
+            "type": "string",
+            "description": "A human-readable message describing the scan status.",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "The timestamp when the scan was started.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Response returned when a scan operation is started."
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "JWT authorisation token",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "Basic": {
+        "type": "http",
+        "description": "Basic authentication credentials",
+        "scheme": "basic"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [],
+      "Basic": []
+    }
+  ]
+}

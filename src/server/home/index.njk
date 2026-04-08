@@ -1,17 +1,111 @@
 {% extends 'layouts/page.njk' %}
 
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
 {% block content %}
+  {{ super() }}
+
   {{ appHeading({
-    text: heading,
-    caption: "ls-keeper-data-api-admin-service"
+    text: heading
   }) }}
 
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">Unable to connect to the backend API. Some data may be unavailable.</p>'
+    }) }}
+  {% endif %}
+
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <div class="govuk-body" data-testid="app-page-body">
-        <p></p>
-      </div>
+    <div class="govuk-grid-column-one-half">
+      <h2 class="govuk-heading-m">Dead letter queue</h2>
+      {% if dashboard.deadLetterQueue %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Messages" },
+              value: { text: dashboard.deadLetterQueue.approximateMessageCount }
+            },
+            {
+              key: { text: "Not visible" },
+              value: { text: dashboard.deadLetterQueue.approximateMessagesNotVisible }
+            },
+            {
+              key: { text: "Delayed" },
+              value: { text: dashboard.deadLetterQueue.approximateMessagesDelayed }
+            }
+          ]
+        }) }}
+      {% else %}
+        <p class="govuk-body">Data unavailable</p>
+      {% endif %}
+    </div>
+
+    <div class="govuk-grid-column-one-half">
+      <h2 class="govuk-heading-m">Main queue</h2>
+      {% if dashboard.mainQueue %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Messages" },
+              value: { text: dashboard.mainQueue.approximateMessageCount }
+            },
+            {
+              key: { text: "Not visible" },
+              value: { text: dashboard.mainQueue.approximateMessagesNotVisible }
+            },
+            {
+              key: { text: "Delayed" },
+              value: { text: dashboard.mainQueue.approximateMessagesDelayed }
+            }
+          ]
+        }) }}
+      {% else %}
+        <p class="govuk-body">Data unavailable</p>
+      {% endif %}
     </div>
   </div>
 
+  <h2 class="govuk-heading-m">Scan states</h2>
+  {% if dashboard.scanStates.length > 0 %}
+    <table class="govuk-table">
+      <thead class="govuk-table__header">
+        <tr class="govuk-table__row">
+          <th class="govuk-table__header" scope="col">Source</th>
+          <th class="govuk-table__header" scope="col">Mode</th>
+          <th class="govuk-table__header" scope="col">Items</th>
+          <th class="govuk-table__header" scope="col">Started</th>
+          <th class="govuk-table__header" scope="col">Completed</th>
+          <th class="govuk-table__header" scope="col">Correlation ID</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for s in dashboard.scanStates %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">{{ s.id }}</td>
+            <td class="govuk-table__cell">
+              {{ govukTag({ text: s.lastScanMode, classes: "govuk-tag--blue" if s.lastScanMode === "bulk" else "govuk-tag--green" }) }}
+            </td>
+            <td class="govuk-table__cell">{{ s.lastScanItemCount }}</td>
+            <td class="govuk-table__cell">{{ s.lastSuccessfulScanStartedAt | formatDate if s.lastSuccessfulScanStartedAt else "—" }}</td>
+            <td class="govuk-table__cell">{{ s.lastSuccessfulScanCompletedAt | formatDate if s.lastSuccessfulScanCompletedAt else "—" }}</td>
+            <td class="govuk-table__cell">{{ s.lastScanCorrelationId | truncate(8, true, '') if s.lastScanCorrelationId else "—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="govuk-body">No scan states available</p>
+  {% endif %}
+
+  <div class="govuk-button-group">
+    {{ govukButton({
+      text: "Refresh",
+      href: "/",
+      classes: "govuk-button--secondary"
+    }) }}
+  </div>
 {% endblock %}

@@ -1,0 +1,56 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% block content %}
+  {{ super() }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">{{ heading }}</h1>
+
+      {% if apiError %}
+        <div class="govuk-error-summary">
+          <h2 class="govuk-error-summary__title">Unable to load country</h2>
+          <p class="govuk-body">The backend API is not responding. Try again later.</p>
+        </div>
+      {% endif %}
+
+      {% if country %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "ID" },
+              value: { text: country.id }
+            },
+            {
+              key: { text: "Code" },
+              value: { text: country.code }
+            },
+            {
+              key: { text: "Name" },
+              value: { text: country.name }
+            },
+            {
+              key: { text: "Long name" },
+              value: { text: country.longName }
+            },
+            {
+              key: { text: "EU trade member" },
+              value: { html: govukTag({ text: "Yes", classes: "govuk-tag--green" }) if country.euTradeMemberFlag else govukTag({ text: "No", classes: "govuk-tag--grey" }) }
+            },
+            {
+              key: { text: "Devolved authority" },
+              value: { html: govukTag({ text: "Yes", classes: "govuk-tag--blue" }) if country.devolvedAuthorityFlag else govukTag({ text: "No", classes: "govuk-tag--grey" }) }
+            },
+            {
+              key: { text: "Last updated" },
+              value: { text: country.lastUpdatedDate | formatDate if country.lastUpdatedDate else "—" }
+            }
+          ]
+        }) }}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

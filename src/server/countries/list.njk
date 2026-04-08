@@ -1,0 +1,124 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% block content %}
+  {{ super() }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">{{ heading }}</h1>
+
+      {% if apiError %}
+        <div class="govuk-error-summary">
+          <h2 class="govuk-error-summary__title">Unable to load countries</h2>
+          <p class="govuk-body">The backend API is not responding. Try again later.</p>
+        </div>
+      {% endif %}
+
+      <details class="govuk-details">
+        <summary class="govuk-details__summary">
+          <span class="govuk-details__summary-text">Filter countries</span>
+        </summary>
+        <div class="govuk-details__text">
+          <form method="get" action="/countries">
+            <div class="govuk-grid-row">
+              <div class="govuk-grid-column-one-quarter">
+                {{ govukInput({
+                  label: { text: "Name" },
+                  id: "Name",
+                  name: "Name",
+                  value: filters.Name
+                }) }}
+              </div>
+              <div class="govuk-grid-column-one-quarter">
+                {{ govukInput({
+                  label: { text: "Code" },
+                  id: "Code",
+                  name: "Code",
+                  value: filters.Code
+                }) }}
+              </div>
+              <div class="govuk-grid-column-one-quarter">
+                {{ govukSelect({
+                  label: { text: "EU trade member" },
+                  id: "EuTradeMember",
+                  name: "EuTradeMember",
+                  items: [
+                    { value: "", text: "All", selected: not filters.EuTradeMember },
+                    { value: "true", text: "Yes", selected: filters.EuTradeMember == "true" },
+                    { value: "false", text: "No", selected: filters.EuTradeMember == "false" }
+                  ]
+                }) }}
+              </div>
+              <div class="govuk-grid-column-one-quarter">
+                {{ govukSelect({
+                  label: { text: "Devolved authority" },
+                  id: "DevolvedAuthority",
+                  name: "DevolvedAuthority",
+                  items: [
+                    { value: "", text: "All", selected: not filters.DevolvedAuthority },
+                    { value: "true", text: "Yes", selected: filters.DevolvedAuthority == "true" },
+                    { value: "false", text: "No", selected: filters.DevolvedAuthority == "false" }
+                  ]
+                }) }}
+              </div>
+            </div>
+            <div class="govuk-grid-row">
+              <div class="govuk-grid-column-one-quarter">
+                {{ govukInput({
+                  label: { text: "Updated since (YYYY-MM-DD)" },
+                  id: "LastUpdatedDate",
+                  name: "LastUpdatedDate",
+                  value: filters.LastUpdatedDate
+                }) }}
+              </div>
+            </div>
+            <div class="govuk-button-group">
+              {{ govukButton({ text: "Apply filters" }) }}
+              <a class="govuk-link" href="/countries">Clear filters</a>
+            </div>
+          </form>
+        </div>
+      </details>
+
+      {% if countries | length %}
+        {% set rows = [] %}
+        {% for c in countries %}
+          {% set rows = (rows.push([
+            { html: '<a class="govuk-link" href="/countries/' + c.id + '">' + c.name + '</a>' },
+            { text: c.code },
+            { text: c.longName },
+            { html: govukTag({ text: "Yes", classes: "govuk-tag--green" }) if c.euTradeMemberFlag else govukTag({ text: "No", classes: "govuk-tag--grey" }) },
+            { html: govukTag({ text: "Yes", classes: "govuk-tag--blue" }) if c.devolvedAuthorityFlag else govukTag({ text: "No", classes: "govuk-tag--grey" }) }
+          ]), rows) %}
+        {% endfor %}
+
+        {{ govukTable({
+          head: [
+            { text: "Name" },
+            { text: "Code" },
+            { text: "Long name" },
+            { text: "EU trade member" },
+            { text: "Devolved authority" }
+          ],
+          rows: rows
+        }) }}
+
+        {% if pagination %}
+          {% include "partials/pagination.njk" %}
+        {% endif %}
+
+        <p class="govuk-body govuk-!-margin-top-4">
+          Showing {{ countries | length }} of {{ pagination.totalCount }} countries
+        </p>
+      {% elif not apiError %}
+        <p class="govuk-body">No countries found matching your filters.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

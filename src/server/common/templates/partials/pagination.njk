@@ -1,0 +1,29 @@
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
+
+{% if pagination and pagination.totalPages > 1 %}
+  {% set paginationItems = [] %}
+
+  {% for i in range(1, pagination.totalPages + 1) %}
+    {% if i <= 5 or i > pagination.totalPages - 2 or (i >= pagination.page - 1 and i <= pagination.page + 1) %}
+      {% set paginationItems = (paginationItems.push({
+        number: i,
+        href: paginationBaseUrl + "&Page=" + i,
+        current: i == pagination.page
+      }), paginationItems) %}
+    {% elif paginationItems | length > 0 and not paginationItems[paginationItems | length - 1].ellipsis %}
+      {% set paginationItems = (paginationItems.push({
+        ellipsis: true
+      }), paginationItems) %}
+    {% endif %}
+  {% endfor %}
+
+  {{ govukPagination({
+    previous: {
+      href: paginationBaseUrl + "&Page=" + (pagination.page - 1)
+    } if pagination.hasPreviousPage else undefined,
+    next: {
+      href: paginationBaseUrl + "&Page=" + (pagination.page + 1)
+    } if pagination.hasNextPage else undefined,
+    items: paginationItems
+  }) }}
+{% endif %}

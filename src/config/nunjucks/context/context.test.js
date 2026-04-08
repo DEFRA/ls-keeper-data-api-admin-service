@@ -49,18 +49,14 @@ describe('context and cache', () => {
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
-            {
-              current: true,
-              text: 'Home',
-              href: '/'
-            },
-            {
-              current: false,
-              text: 'About',
-              href: '/about'
-            }
+            { current: true, text: 'Home', href: '/' },
+            { current: false, text: 'Scans', href: '/scans' },
+            { current: false, text: 'Queues', href: '/queues' },
+            { current: false, text: 'Sites', href: '/sites' },
+            { current: false, text: 'Parties', href: '/parties' },
+            { current: false, text: 'Countries', href: '/countries' }
           ],
-          serviceName: 'ls-keeper-data-api-admin-service',
+          serviceName: 'Keeper Data API Admin Service',
           serviceUrl: '/'
         })
       })
@@ -138,18 +134,14 @@ describe('context and cache', () => {
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
-            {
-              current: true,
-              text: 'Home',
-              href: '/'
-            },
-            {
-              current: false,
-              text: 'About',
-              href: '/about'
-            }
+            { current: true, text: 'Home', href: '/' },
+            { current: false, text: 'Scans', href: '/scans' },
+            { current: false, text: 'Queues', href: '/queues' },
+            { current: false, text: 'Sites', href: '/sites' },
+            { current: false, text: 'Parties', href: '/parties' },
+            { current: false, text: 'Countries', href: '/countries' }
           ],
-          serviceName: 'ls-keeper-data-api-admin-service',
+          serviceName: 'Keeper Data API Admin Service',
           serviceUrl: '/'
         })
       })

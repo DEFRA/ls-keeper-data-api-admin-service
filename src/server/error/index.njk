@@ -6,8 +6,18 @@
   }) }}
 
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <p>{{ message }}</p>
+    <div class="govuk-grid-column-full">
+      <p class="govuk-body-l">{{ message }}</p>
+
+      {% if detail %}
+        <h2 class="govuk-heading-m">Detail</h2>
+        <p class="govuk-body">{{ detail }}</p>
+      {% endif %}
+
+      {% if stack %}
+        <h2 class="govuk-heading-m">Stack trace</h2>
+        <pre class="govuk-body" style="overflow-x:auto;background:#f3f2f1;padding:15px;border-left:5px solid #b1b4b6">{{ stack }}</pre>
+      {% endif %}
     </div>
   </div>
 {% endblock %}

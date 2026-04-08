@@ -2,6 +2,8 @@
 
 {# Import GOVUK components globally #}
 {% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
 
 {# Import custom components globally #}
@@ -14,17 +16,15 @@
 {% endblock %}
 
 {% block header %}
-  {# serviceName being used in govukHeader will be @deprecated in v6. It has moved to govukServiceNavigation - https://github.com/alphagov/govuk-frontend/blob/main/CHANGELOG.md#move-service-name-and-navigation-links-from-the-govuk-header-to-service-navigation-component #}
   {{ govukHeader({
     homepageUrl: "https://www.gov.uk/",
     classes: "app-header",
-    containerClasses: "govuk-width-container",
-    serviceName: serviceName,
-    serviceUrl: serviceUrl,
-    useTudorCrown: true
+    containerClasses: "govuk-width-container"
   }) }}
 
   {{ govukServiceNavigation({
+    serviceName: serviceName,
+    serviceUrl: serviceUrl,
     navigation: navigation
   }) }}
 {% endblock %}
@@ -34,6 +34,11 @@
 {% endblock %}
 
 {% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: { text: "Alpha" },
+    html: 'This is a new service.'
+  }) }}
+
   {% if breadcrumbs.length > 1 %}
     {{ govukBreadcrumbs({
       items: breadcrumbs
@@ -41,7 +46,14 @@
   {% endif %}
 {% endblock %}
 
-{% block content %}{% endblock %}
+{% block content %}
+  {% if flash %}
+    {{ govukNotificationBanner({
+      type: flash.type if flash.type === 'success' else undefined,
+      html: flash.message
+    }) }}
+  {% endif %}
+{% endblock %}
 
 {% block footer %}
   {{ govukFooter({

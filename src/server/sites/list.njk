@@ -1,0 +1,98 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">Unable to connect to the backend API.</p>'
+    }) }}
+  {% endif %}
+
+  <form method="get" action="/sites" class="govuk-!-margin-bottom-6">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-third">
+        {{ govukInput({
+          label: { text: "Site identifier" },
+          id: "SiteIdentifier",
+          name: "SiteIdentifier",
+          value: filters.SiteIdentifier,
+          classes: "govuk-input--width-20"
+        }) }}
+      </div>
+      <div class="govuk-grid-column-one-third">
+        {{ govukSelect({
+          label: { text: "Type" },
+          id: "Type",
+          name: "Type",
+          items: [
+            { value: "", text: "All types", selected: not filters.Type },
+            { value: "AH", text: "AH - Agricultural Holding", selected: filters.Type === "AH" },
+            { value: "MA", text: "MA - Market", selected: filters.Type === "MA" },
+            { value: "SR", text: "SR - Slaughter House Red Meat", selected: filters.Type === "SR" },
+            { value: "SW", text: "SW - Slaughter House White Meat", selected: filters.Type === "SW" },
+            { value: "AC", text: "AC - Assembly Centre", selected: filters.Type === "AC" },
+            { value: "CC", text: "CC - Collection Centre", selected: filters.Type === "CC" },
+            { value: "AP", text: "AP - Airport", selected: filters.Type === "AP" },
+            { value: "SP", text: "SP - Seaport", selected: filters.Type === "SP" },
+            { value: "SG", text: "SG - Showground", selected: filters.Type === "SG" },
+            { value: "VE", text: "VE - Veterinary Practice", selected: filters.Type === "VE" }
+          ]
+        }) }}
+      </div>
+      <div class="govuk-grid-column-one-third">
+        {{ govukInput({
+          label: { text: "Changes since" },
+          id: "LastUpdatedDate",
+          name: "LastUpdatedDate",
+          value: filters.LastUpdatedDate,
+          type: "date"
+        }) }}
+      </div>
+    </div>
+
+    {{ govukButton({
+      text: "Search"
+    }) }}
+  </form>
+
+  {% if sites.length > 0 %}
+    <p class="govuk-body">Showing {{ pagination.page }} of {{ pagination.totalPages }} pages ({{ pagination.totalCount }} total)</p>
+
+    <table class="govuk-table">
+      <thead class="govuk-table__header">
+        <tr class="govuk-table__row">
+          <th class="govuk-table__header" scope="col">Name</th>
+          <th class="govuk-table__header" scope="col">Type</th>
+          <th class="govuk-table__header" scope="col">Identifier</th>
+          <th class="govuk-table__header" scope="col">State</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for site in sites %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">
+              <a class="govuk-link" href="/sites/{{ site.id }}">{{ site.name }}</a>
+            </td>
+            <td class="govuk-table__cell">{{ site.type }}</td>
+            <td class="govuk-table__cell">{{ site.siteIdentifier }}</td>
+            <td class="govuk-table__cell">{{ site.state }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% include "partials/pagination.njk" %}
+  {% else %}
+    <p class="govuk-body">No sites found</p>
+  {% endif %}
+{% endblock %}

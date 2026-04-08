@@ -44,7 +44,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'ls-keeper-data-api-admin-service'
+    default: 'Keeper Data API Admin Service'
   },
   root: {
     doc: 'Project root',
@@ -212,6 +212,36 @@ export const config = convict({
       format: String,
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
+    }
+  },
+  api: {
+    baseUrl: {
+      doc: 'Backend API base URL',
+      format: String,
+      default: '',
+      env: 'BACKEND_API_BASE_URL'
+    },
+    authHeader: {
+      doc: 'Base64 encoded Basic auth credentials for backend API',
+      format: String,
+      default: '',
+      env: 'BACKEND_AUTHORIZATION_API_KEY',
+      sensitive: true
+    },
+    apiKey: {
+      doc: 'Optional x-api-key header value for backend API',
+      format: String,
+      default: '',
+      env: 'BACKEND_X_API_KEY'
+    }
+  },
+  auth: {
+    adminPassword: {
+      doc: 'Password for admin login',
+      format: String,
+      default: 'admin',
+      env: 'ADMIN_PASSWORD',
+      sensitive: true
     }
   }
 })

@@ -1,0 +1,111 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">Unable to connect to the backend API.</p>'
+    }) }}
+  {% endif %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-half">
+      <h2 class="govuk-heading-m">Start CTS scan</h2>
+      <form method="post" action="/scans/cts">
+        <input type="hidden" name="crumb" value="{{ crumb }}" />
+
+        {{ govukCheckboxes({
+          idPrefix: "cts-forceBulk",
+          name: "forceBulk",
+          classes: "govuk-checkboxes--small",
+          items: [
+            { value: "true", text: "Force bulk scan" }
+          ]
+        }) }}
+
+        {{ govukInput({
+          label: { text: "Since hours (optional)" },
+          id: "cts-sinceHours",
+          name: "sinceHours",
+          classes: "govuk-input--width-4",
+          inputmode: "numeric"
+        }) }}
+
+        {{ govukButton({
+          text: "Start CTS scan"
+        }) }}
+      </form>
+    </div>
+
+    <div class="govuk-grid-column-one-half">
+      <h2 class="govuk-heading-m">Start SAM scan</h2>
+      <form method="post" action="/scans/sam">
+        <input type="hidden" name="crumb" value="{{ crumb }}" />
+
+        {{ govukCheckboxes({
+          idPrefix: "sam-forceBulk",
+          name: "forceBulk",
+          classes: "govuk-checkboxes--small",
+          items: [
+            { value: "true", text: "Force bulk scan" }
+          ]
+        }) }}
+
+        {{ govukInput({
+          label: { text: "Since hours (optional)" },
+          id: "sam-sinceHours",
+          name: "sinceHours",
+          classes: "govuk-input--width-4",
+          inputmode: "numeric"
+        }) }}
+
+        {{ govukButton({
+          text: "Start SAM scan"
+        }) }}
+      </form>
+    </div>
+  </div>
+
+  <h2 class="govuk-heading-m">Scan history</h2>
+  {% if scanStates.length > 0 %}
+    <table class="govuk-table">
+      <thead class="govuk-table__header">
+        <tr class="govuk-table__row">
+          <th class="govuk-table__header" scope="col">Source</th>
+          <th class="govuk-table__header" scope="col">Mode</th>
+          <th class="govuk-table__header" scope="col">Items</th>
+          <th class="govuk-table__header" scope="col">Started</th>
+          <th class="govuk-table__header" scope="col">Completed</th>
+          <th class="govuk-table__header" scope="col">Correlation ID</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for s in scanStates %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">{{ s.id }}</td>
+            <td class="govuk-table__cell">
+              {{ govukTag({ text: s.lastScanMode, classes: "govuk-tag--blue" if s.lastScanMode === "bulk" else "govuk-tag--green" }) }}
+            </td>
+            <td class="govuk-table__cell">{{ s.lastScanItemCount }}</td>
+            <td class="govuk-table__cell">{{ s.lastSuccessfulScanStartedAt | formatDate("d MMM yyyy HH:mm:ss") if s.lastSuccessfulScanStartedAt else "—" }}</td>
+            <td class="govuk-table__cell">{{ s.lastSuccessfulScanCompletedAt | formatDate("d MMM yyyy HH:mm:ss") if s.lastSuccessfulScanCompletedAt else "—" }}</td>
+            <td class="govuk-table__cell">{{ s.lastScanCorrelationId | truncate(8, true, '') if s.lastScanCorrelationId else "—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="govuk-body">No scan history available</p>
+  {% endif %}
+{% endblock %}

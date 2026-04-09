@@ -108,87 +108,91 @@
     </div>
   {% endif %}
 
-  {# ── Section 2: Queue connectivity probe ────────────────── #}
-  <h2 class="govuk-heading-m govuk-!-margin-top-8">
-    2. API connectivity probe <code class="app-health-code">{{ queue.endpointPath }}</code>
-  </h2>
+  {# ── API connectivity probes ─────────────────────────────── #}
+  {% for probe in probes %}
+    <h2 class="govuk-heading-m govuk-!-margin-top-8">
+      {{ loop.index + 1 }}. {{ probe.label }} <code class="app-health-code">{{ probe.endpointPath }}</code>
+    </h2>
 
-  {% if queue.ok and queue.result %}
-    <div class="app-health-overview">
-      {{ govukTag({ text: "OK", classes: "govuk-tag--green" }) }}
-      <span class="govuk-body govuk-!-margin-left-2 govuk-!-margin-bottom-0">
-        HTTP {{ queue.statusCode }} &middot; Responded in {{ queue.elapsedMs }}ms
-      </span>
-    </div>
+    {% if probe.ok %}
+      <div class="app-health-overview">
+        {{ govukTag({ text: "OK", classes: "govuk-tag--green" }) }}
+        <span class="govuk-body govuk-!-margin-left-2 govuk-!-margin-bottom-0">
+          HTTP {{ probe.statusCode }} &middot; Responded in {{ probe.elapsedMs }}ms
+        </span>
+      </div>
 
-    {% set queueRows = [
-      { key: { text: "Approx. message count" }, value: { text: queue.result.approximateMessageCount } },
-      { key: { text: "Messages not visible (in flight)" }, value: { text: queue.result.approximateMessagesNotVisible } },
-      { key: { text: "Messages delayed" }, value: { text: queue.result.approximateMessagesDelayed } }
-    ] %}
+      {% if probe.type === "queue" and probe.result %}
+        {% set queueRows = [
+          { key: { text: "Approx. message count" }, value: { text: probe.result.approximateMessageCount } },
+          { key: { text: "Messages not visible (in flight)" }, value: { text: probe.result.approximateMessagesNotVisible } },
+          { key: { text: "Messages delayed" }, value: { text: probe.result.approximateMessagesDelayed } }
+        ] %}
 
-    {% if queue.result.checkedAt %}
-      {% set queueRows = queueRows.concat([
-        { key: { text: "Checked at" }, value: { text: queue.result.checkedAt | formatDate("d MMM yyyy HH:mm:ss") } }
-      ]) %}
-    {% endif %}
+        {% if probe.result.checkedAt %}
+          {% set queueRows = queueRows.concat([
+            { key: { text: "Checked at" }, value: { text: probe.result.checkedAt | formatDate("d MMM yyyy HH:mm:ss") } }
+          ]) %}
+        {% endif %}
 
-    {% if queue.result.queueUrl %}
-      {% set queueRows = queueRows.concat([
-        { key: { text: "Queue URL" }, value: { html: '<code class="app-health-code">' + queue.result.queueUrl + '</code>' } }
-      ]) %}
-    {% endif %}
+        {% if probe.result.queueUrl %}
+          {% set queueRows = queueRows.concat([
+            { key: { text: "Queue URL" }, value: { html: '<code class="app-health-code">' + probe.result.queueUrl + '</code>' } }
+          ]) %}
+        {% endif %}
 
-    {{ govukSummaryList({ rows: queueRows }) }}
+        {{ govukSummaryList({ rows: queueRows }) }}
+      {% endif %}
 
-    {{ govukDetails({
-      summaryText: "Raw JSON response",
-      html: '<pre class="app-health-pre">' + (queue.json | dump(2)) + '</pre>'
-    }) }}
-
-  {% elif queue.error %}
-    {{ govukNotificationBanner({
-      html: '<h3 class="govuk-notification-banner__heading">Failed to reach ' + queue.endpointPath + '</h3>'
-    }) }}
-
-    <div class="app-health-error">
-      {{ govukSummaryList({
-        rows: [
-          { key: { text: "Error type" }, value: { html: '<code class="app-health-code">' + queue.error.name + '</code>' } },
-          { key: { text: "Message" }, value: { text: queue.error.message } },
-          { key: { text: "Error code" }, value: { html: '<code class="app-health-code">' + (queue.error.code if queue.error.code else "—") + '</code>' } },
-          { key: { text: "Elapsed" }, value: { text: queue.elapsedMs ~ "ms" } }
-        ]
+      {{ govukDetails({
+        summaryText: "Raw JSON response",
+        html: '<pre class="app-health-pre">' + (probe.json | dump(2)) + '</pre>'
       }) }}
 
-      {% if queue.error.stack %}
-        {{ govukDetails({
-          summaryText: "Full stack trace",
-          html: '<pre class="app-health-pre">' + queue.error.stack + '</pre>'
-        }) }}
-      {% endif %}
-    </div>
-
-  {% else %}
-    {{ govukNotificationBanner({
-      html: '<h3 class="govuk-notification-banner__heading">Unexpected response from ' + queue.endpointPath + '</h3>'
-    }) }}
-
-    <div class="app-health-error">
-      {{ govukSummaryList({
-        rows: [
-          { key: { text: "HTTP status" }, value: { html: '<code class="app-health-code">' + queue.statusCode + '</code>' } },
-          { key: { text: "Elapsed" }, value: { text: queue.elapsedMs ~ "ms" } }
-        ]
+    {% elif probe.error %}
+      {{ govukNotificationBanner({
+        html: '<h3 class="govuk-notification-banner__heading">Failed to reach ' + probe.endpointPath + '</h3>'
       }) }}
 
-      {% if queue.rawBody %}
-        {{ govukDetails({
-          summaryText: "Raw response body",
-          html: '<pre class="app-health-pre">' + queue.rawBody + '</pre>'
+      <div class="app-health-error">
+        {{ govukSummaryList({
+          rows: [
+            { key: { text: "Error type" }, value: { html: '<code class="app-health-code">' + probe.error.name + '</code>' } },
+            { key: { text: "Message" }, value: { text: probe.error.message } },
+            { key: { text: "Error code" }, value: { html: '<code class="app-health-code">' + (probe.error.code if probe.error.code else "—") + '</code>' } },
+            { key: { text: "Elapsed" }, value: { text: probe.elapsedMs ~ "ms" } }
+          ]
         }) }}
-      {% endif %}
-    </div>
-  {% endif %}
+
+        {% if probe.error.stack %}
+          {{ govukDetails({
+            summaryText: "Full stack trace",
+            html: '<pre class="app-health-pre">' + probe.error.stack + '</pre>'
+          }) }}
+        {% endif %}
+      </div>
+
+    {% else %}
+      {{ govukNotificationBanner({
+        html: '<h3 class="govuk-notification-banner__heading">Unexpected response from ' + probe.endpointPath + '</h3>'
+      }) }}
+
+      <div class="app-health-error">
+        {{ govukSummaryList({
+          rows: [
+            { key: { text: "HTTP status" }, value: { html: '<code class="app-health-code">' + probe.statusCode + '</code>' } },
+            { key: { text: "Elapsed" }, value: { text: probe.elapsedMs ~ "ms" } }
+          ]
+        }) }}
+
+        {% if probe.rawBody %}
+          {{ govukDetails({
+            summaryText: "Raw response body",
+            html: '<pre class="app-health-pre">' + probe.rawBody + '</pre>'
+          }) }}
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}
 
 {% endblock %}

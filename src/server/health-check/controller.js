@@ -83,20 +83,48 @@ async function probeEndpoint(server, proxyPath) {
   }
 }
 
+const apiProbes = [
+  {
+    endpointPath: '/api/admin/queues/main/count',
+    label: 'Main queue count',
+    type: 'queue'
+  },
+  {
+    endpointPath: '/api/admin/queues/deadletter/count',
+    label: 'Dead-letter queue count',
+    type: 'queue'
+  },
+  {
+    endpointPath: '/api/admin/scanstates',
+    label: 'Scan states',
+    type: 'generic'
+  }
+]
+
 export const healthCheckController = {
   async handler(request, h) {
-    const [healthProbe, queueProbe] = await Promise.all([
+    const [healthProbe, ...probeResults] = await Promise.all([
       probeEndpoint(request.server, '/proxy/health'),
-      probeEndpoint(request.server, '/proxy/api/admin/queues/main/count')
+      ...apiProbes.map((p) =>
+        probeEndpoint(request.server, '/proxy' + p.endpointPath)
+      )
     ])
 
     const healthResult = healthProbe.ok
       ? transformHealthResults(healthProbe.json)
       : null
 
-    const queueResult = queueProbe.ok
-      ? transformQueueStats(queueProbe.json)
-      : null
+    const probes = apiProbes.map((definition, i) => {
+      const probe = probeResults[i]
+      return {
+        ...probe,
+        ...definition,
+        result:
+          probe.ok && definition.type === 'queue'
+            ? transformQueueStats(probe.json)
+            : null
+      }
+    })
 
     return h.view('health-check/index', {
       pageTitle: 'API Health Check',
@@ -106,11 +134,7 @@ export const healthCheckController = {
         ...healthProbe,
         result: healthResult
       },
-      queue: {
-        ...queueProbe,
-        result: queueResult,
-        endpointPath: '/api/admin/queues/main/count'
-      },
+      probes,
       breadcrumbs: [{ text: 'Home', href: '/' }, { text: 'API Health Check' }]
     })
   }

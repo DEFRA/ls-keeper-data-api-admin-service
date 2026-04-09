@@ -13,7 +13,8 @@ describe('#buildNavigation', () => {
       { current: false, text: 'Queues', href: '/queues' },
       { current: false, text: 'Sites', href: '/sites' },
       { current: false, text: 'Parties', href: '/parties' },
-      { current: false, text: 'Countries', href: '/countries' }
+      { current: false, text: 'Countries', href: '/countries' },
+      { current: false, text: 'Health Check', href: '/health-check' }
     ])
   })
 
@@ -37,5 +38,10 @@ describe('#buildNavigation', () => {
   test('Should highlight Countries on sub-path /countries/456', () => {
     const result = buildNavigation(mockRequest({ path: '/countries/456' }))
     expect(result[5].current).toBe(true)
+  })
+
+  test('Should highlight Health Check on /health-check path', () => {
+    const result = buildNavigation(mockRequest({ path: '/health-check' }))
+    expect(result[6].current).toBe(true)
   })
 })

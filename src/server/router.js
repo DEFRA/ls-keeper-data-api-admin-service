@@ -9,6 +9,7 @@ import { queues } from './queues/index.js'
 import { sites } from './sites/index.js'
 import { parties } from './parties/index.js'
 import { countries } from './countries/index.js'
+import { healthCheck } from './health-check/index.js'
 import { serveStaticFiles } from './common/helpers/serve-static-files.js'
 
 export const router = {
@@ -24,7 +25,15 @@ export const router = {
       await server.register([login, logout])
 
       // Application specific routes, add your own routes here
-      await server.register([home, scans, queues, sites, parties, countries])
+      await server.register([
+        home,
+        scans,
+        queues,
+        sites,
+        parties,
+        countries,
+        healthCheck
+      ])
 
       // Static assets
       await server.register([serveStaticFiles])

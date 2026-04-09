@@ -54,7 +54,8 @@ describe('context and cache', () => {
             { current: false, text: 'Queues', href: '/queues' },
             { current: false, text: 'Sites', href: '/sites' },
             { current: false, text: 'Parties', href: '/parties' },
-            { current: false, text: 'Countries', href: '/countries' }
+            { current: false, text: 'Countries', href: '/countries' },
+            { current: false, text: 'Health Check', href: '/health-check' }
           ],
           serviceName: 'Keeper Data API Admin Service',
           serviceUrl: '/'
@@ -139,7 +140,8 @@ describe('context and cache', () => {
             { current: false, text: 'Queues', href: '/queues' },
             { current: false, text: 'Sites', href: '/sites' },
             { current: false, text: 'Parties', href: '/parties' },
-            { current: false, text: 'Countries', href: '/countries' }
+            { current: false, text: 'Countries', href: '/countries' },
+            { current: false, text: 'Health Check', href: '/health-check' }
           ],
           serviceName: 'Keeper Data API Admin Service',
           serviceUrl: '/'

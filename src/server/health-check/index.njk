@@ -1,0 +1,194 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {{ govukSummaryList({
+    rows: [
+      {
+        key: { text: "Backend API Base URL" },
+        value: { html: '<code class="app-health-code">' + (apiBaseUrl if apiBaseUrl else '<em>not configured</em>') + '</code>' }
+      }
+    ]
+  }) }}
+
+  {# ── Section 1: /health endpoint ────────────────────────── #}
+  <h2 class="govuk-heading-m">1. Health endpoint <code class="app-health-code">/health</code></h2>
+
+  {% if health.ok and health.result %}
+    {% set overallColour = "green" if health.result.status === "Healthy" else "red" %}
+    <div class="app-health-overview">
+      {{ govukTag({ text: health.result.status, classes: "govuk-tag--" + overallColour }) }}
+      <span class="govuk-body govuk-!-margin-left-2 govuk-!-margin-bottom-0">
+        Total duration: <strong>{{ health.result.durationMs }}ms</strong> &middot;
+        HTTP {{ health.statusCode }} &middot;
+        Responded in {{ health.elapsedMs }}ms
+      </span>
+    </div>
+
+    {% for check in health.result.results %}
+      {% set colour = "green" if check.status === "Healthy" else "red" %}
+      <div class="app-health-card">
+        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+          {{ govukTag({ text: check.status, classes: "govuk-tag--" + colour }) }}
+          <code class="app-health-code">{{ check.name }}</code>
+        </h3>
+        {% if check.description %}
+          <p class="govuk-body-s govuk-!-margin-bottom-1">{{ check.description }}</p>
+        {% endif %}
+
+        {{ govukSummaryList({
+          classes: "govuk-summary-list--no-border app-health-summary",
+          rows: [
+            { key: { text: "Duration" }, value: { text: check.durationMs ~ "ms" } },
+            { key: { text: "Tags" }, value: { html: '<code class="app-health-code">' + check.tags | join("</code>, <code class=\"app-health-code\">") + '</code>' if check.tags.length else "—" } }
+          ]
+        }) }}
+
+        {% if check.data and check.data | length %}
+          {{ govukDetails({
+            summaryText: "Data (" ~ (check.data | length) ~ " entries)",
+            html: '<pre class="app-health-pre">' + (check.data | dump(2)) + '</pre>'
+          }) }}
+        {% endif %}
+      </div>
+    {% endfor %}
+
+  {% elif health.error %}
+    {{ govukNotificationBanner({
+      html: '<h3 class="govuk-notification-banner__heading">Failed to reach /health endpoint</h3>'
+    }) }}
+
+    <div class="app-health-error">
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "Error type" }, value: { html: '<code class="app-health-code">' + health.error.name + '</code>' } },
+          { key: { text: "Message" }, value: { text: health.error.message } },
+          { key: { text: "Error code" }, value: { html: '<code class="app-health-code">' + (health.error.code if health.error.code else "—") + '</code>' } },
+          { key: { text: "Elapsed" }, value: { text: health.elapsedMs ~ "ms" } }
+        ]
+      }) }}
+
+      {% if health.error.stack %}
+        {{ govukDetails({
+          summaryText: "Full stack trace",
+          html: '<pre class="app-health-pre">' + health.error.stack + '</pre>'
+        }) }}
+      {% endif %}
+    </div>
+
+  {% else %}
+    {{ govukNotificationBanner({
+      html: '<h3 class="govuk-notification-banner__heading">Unexpected response from /health endpoint</h3>'
+    }) }}
+
+    <div class="app-health-error">
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "HTTP status" }, value: { html: '<code class="app-health-code">' + health.statusCode + '</code>' } },
+          { key: { text: "Elapsed" }, value: { text: health.elapsedMs ~ "ms" } }
+        ]
+      }) }}
+
+      {% if health.rawBody %}
+        {{ govukDetails({
+          summaryText: "Raw response body",
+          html: '<pre class="app-health-pre">' + health.rawBody + '</pre>'
+        }) }}
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {# ── Section 2: Queue connectivity probe ────────────────── #}
+  <h2 class="govuk-heading-m govuk-!-margin-top-8">
+    2. API connectivity probe <code class="app-health-code">{{ queue.endpointPath }}</code>
+  </h2>
+
+  {% if queue.ok and queue.result %}
+    <div class="app-health-overview">
+      {{ govukTag({ text: "OK", classes: "govuk-tag--green" }) }}
+      <span class="govuk-body govuk-!-margin-left-2 govuk-!-margin-bottom-0">
+        HTTP {{ queue.statusCode }} &middot; Responded in {{ queue.elapsedMs }}ms
+      </span>
+    </div>
+
+    {% set queueRows = [
+      { key: { text: "Approx. message count" }, value: { text: queue.result.approximateMessageCount } },
+      { key: { text: "Messages not visible (in flight)" }, value: { text: queue.result.approximateMessagesNotVisible } },
+      { key: { text: "Messages delayed" }, value: { text: queue.result.approximateMessagesDelayed } }
+    ] %}
+
+    {% if queue.result.checkedAt %}
+      {% set queueRows = queueRows.concat([
+        { key: { text: "Checked at" }, value: { text: queue.result.checkedAt | formatDate("d MMM yyyy HH:mm:ss") } }
+      ]) %}
+    {% endif %}
+
+    {% if queue.result.queueUrl %}
+      {% set queueRows = queueRows.concat([
+        { key: { text: "Queue URL" }, value: { html: '<code class="app-health-code">' + queue.result.queueUrl + '</code>' } }
+      ]) %}
+    {% endif %}
+
+    {{ govukSummaryList({ rows: queueRows }) }}
+
+    {{ govukDetails({
+      summaryText: "Raw JSON response",
+      html: '<pre class="app-health-pre">' + (queue.json | dump(2)) + '</pre>'
+    }) }}
+
+  {% elif queue.error %}
+    {{ govukNotificationBanner({
+      html: '<h3 class="govuk-notification-banner__heading">Failed to reach ' + queue.endpointPath + '</h3>'
+    }) }}
+
+    <div class="app-health-error">
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "Error type" }, value: { html: '<code class="app-health-code">' + queue.error.name + '</code>' } },
+          { key: { text: "Message" }, value: { text: queue.error.message } },
+          { key: { text: "Error code" }, value: { html: '<code class="app-health-code">' + (queue.error.code if queue.error.code else "—") + '</code>' } },
+          { key: { text: "Elapsed" }, value: { text: queue.elapsedMs ~ "ms" } }
+        ]
+      }) }}
+
+      {% if queue.error.stack %}
+        {{ govukDetails({
+          summaryText: "Full stack trace",
+          html: '<pre class="app-health-pre">' + queue.error.stack + '</pre>'
+        }) }}
+      {% endif %}
+    </div>
+
+  {% else %}
+    {{ govukNotificationBanner({
+      html: '<h3 class="govuk-notification-banner__heading">Unexpected response from ' + queue.endpointPath + '</h3>'
+    }) }}
+
+    <div class="app-health-error">
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "HTTP status" }, value: { html: '<code class="app-health-code">' + queue.statusCode + '</code>' } },
+          { key: { text: "Elapsed" }, value: { text: queue.elapsedMs ~ "ms" } }
+        ]
+      }) }}
+
+      {% if queue.rawBody %}
+        {{ govukDetails({
+          summaryText: "Raw response body",
+          html: '<pre class="app-health-pre">' + queue.rawBody + '</pre>'
+        }) }}
+      {% endif %}
+    </div>
+  {% endif %}
+
+{% endblock %}

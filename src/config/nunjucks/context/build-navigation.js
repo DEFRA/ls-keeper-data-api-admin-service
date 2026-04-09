@@ -29,6 +29,11 @@ export function buildNavigation(request) {
       text: 'Countries',
       href: '/countries',
       current: request?.path?.startsWith('/countries')
+    },
+    {
+      text: 'Health Check',
+      href: '/health-check',
+      current: request?.path?.startsWith('/health-check')
     }
   ]
 }

@@ -1,0 +1,46 @@
+@use "govuk-frontend" as *;
+
+.app-health-overview {
+  @include govuk-font($size: 19);
+
+  margin-bottom: govuk-spacing(6);
+}
+
+.app-health-card {
+  padding: govuk-spacing(4);
+  margin-bottom: govuk-spacing(4);
+  border: 1px solid $govuk-border-colour;
+  background: govuk-colour("white");
+}
+
+.app-health-summary {
+  @include govuk-font($size: 16);
+
+  margin-bottom: govuk-spacing(2);
+}
+
+.app-health-pre {
+  @include govuk-font($size: 16, $weight: regular);
+
+  max-height: 300px;
+  padding: govuk-spacing(3);
+  overflow: auto;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: govuk-colour("white");
+  border: 1px solid $govuk-border-colour;
+}
+
+.app-health-code {
+  @include govuk-font($size: 16);
+
+  font-family: monospace;
+}
+
+.app-health-error {
+  padding: govuk-spacing(4);
+  margin-bottom: govuk-spacing(4);
+  border-left: 4px solid govuk-colour("red");
+  background: govuk-tint(govuk-colour("red"), 95);
+}

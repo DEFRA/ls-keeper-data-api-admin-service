@@ -7,7 +7,7 @@ export function transformSiteList(data) {
     sites: data.values.map((s) => ({
       id: s.id,
       name: s.name ?? '—',
-      type: s.type == null ? '—' : s.type.name ?? '—',
+      type: s.type == null ? '—' : (s.type.name ?? '—'),
       siteIdentifier: s.identifiers?.[0]?.identifier ?? '—',
       state: s.state ?? '—'
     })),

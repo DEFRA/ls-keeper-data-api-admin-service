@@ -7,7 +7,7 @@ export function transformSiteList(data) {
     sites: data.values.map((s) => ({
       id: s.id,
       name: s.name ?? '—',
-      type: s.type ?? '—',
+      type: s.type == null ? '—' : s.type.name ?? '—',
       siteIdentifier: s.identifiers?.[0]?.identifier ?? '—',
       state: s.state ?? '—'
     })),
@@ -30,7 +30,7 @@ export function transformSiteDetail(data) {
     name: data.name,
     state: data.state,
     source: data.source,
-    type: data.type,
+    type: data.type?.name,
     destroyIdentityDocumentsFlag: data.destroyIdentityDocumentsFlag,
     lastUpdatedDate: data.lastUpdatedDate,
     location: data.location

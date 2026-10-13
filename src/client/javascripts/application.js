@@ -10,6 +10,7 @@ import {
 } from 'govuk-frontend'
 
 import { createHoldingsProbe } from './holdings-probe.js'
+import { createCacheRefresh } from './cache-refresh.js'
 
 createAll(Button)
 createAll(Checkboxes)
@@ -20,3 +21,4 @@ createAll(ServiceNavigation)
 createAll(SkipLink)
 
 createHoldingsProbe()
+createCacheRefresh()

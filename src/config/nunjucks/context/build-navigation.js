@@ -26,6 +26,11 @@ export function buildNavigation(request) {
       current: request?.path?.startsWith('/holdings')
     },
     {
+      text: 'CPH Associations',
+      href: '/cph-associations',
+      current: request?.path?.startsWith('/cph-associations')
+    },
+    {
       text: 'Health Check',
       href: '/health-check',
       current: request?.path?.startsWith('/health-check')

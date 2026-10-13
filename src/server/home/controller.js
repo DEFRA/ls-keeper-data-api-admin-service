@@ -22,9 +22,14 @@ export const sections = [
     description: 'Search holdings from the v2 SAM read model and view detail.'
   },
   {
+    text: 'CPH Associations',
+    href: '/cph-associations',
+    description: 'Look up the CPHs and roles associated with an email address.'
+  },
+  {
     text: 'Health Check',
     href: '/health-check',
-    description: 'Check backend API connectivity and holdings API access.'
+    description: 'Check backend API connectivity and refresh the SQLite cache.'
   }
 ]
 

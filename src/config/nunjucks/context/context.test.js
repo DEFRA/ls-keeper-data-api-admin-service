@@ -54,6 +54,11 @@ describe('context and cache', () => {
             { current: false, text: 'Parties', href: '/parties' },
             { current: false, text: 'Countries', href: '/countries' },
             { current: false, text: 'Holdings v2', href: '/holdings' },
+            {
+              current: false,
+              text: 'CPH Associations',
+              href: '/cph-associations'
+            },
             { current: false, text: 'Health Check', href: '/health-check' }
           ],
           serviceName: 'Keeper Data API Admin Service',
@@ -139,6 +144,11 @@ describe('context and cache', () => {
             { current: false, text: 'Parties', href: '/parties' },
             { current: false, text: 'Countries', href: '/countries' },
             { current: false, text: 'Holdings v2', href: '/holdings' },
+            {
+              current: false,
+              text: 'CPH Associations',
+              href: '/cph-associations'
+            },
             { current: false, text: 'Health Check', href: '/health-check' }
           ],
           serviceName: 'Keeper Data API Admin Service',

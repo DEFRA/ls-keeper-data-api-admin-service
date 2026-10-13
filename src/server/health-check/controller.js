@@ -1,8 +1,20 @@
 import { config } from '../../config/config.js'
 
 const apiBaseUrl = config.get('api.baseUrl')
+const authHeader = config.get('api.authHeader')
+const apiKey = config.get('api.apiKey')
 
 export const holdingsProbePath = '/health-check/holdings-probe'
+export const cacheRefreshPath = '/health-check/cache-refresh'
+
+function backendHeaders() {
+  const headers = { Accept: 'application/json' }
+
+  if (authHeader) headers.Authorization = `Basic ${authHeader}`
+  if (apiKey) headers['x-api-key'] = apiKey
+
+  return headers
+}
 
 export function transformHealthResults(data) {
   if (!data) return null
@@ -90,6 +102,7 @@ export const healthCheckController = {
         result: healthResult
       },
       holdingsProbePath,
+      cacheRefreshPath,
       breadcrumbs: [{ text: 'Home', href: '/' }, { text: 'API Health Check' }]
     })
   }
@@ -182,6 +195,78 @@ export const holdingsProbeController = {
         message:
           err.name === 'TimeoutError'
             ? `No response within ${probeTimeoutMs / 1000} seconds`
+            : err.message
+      })
+    }
+  }
+}
+
+const cacheRefreshEndpoint = '/api/admin/sqlite-cache/refresh'
+const cacheRefreshQuery = 'cache=all&force=true'
+
+// Rebuilding both SQLite caches from S3 is slow, so this allows far longer than a read probe.
+const cacheRefreshTimeoutMs = 120000
+
+export const cacheRefreshController = {
+  options: {
+    payload: { maxBytes: 4096 }
+  },
+  async handler(request, h) {
+    if (!apiBaseUrl) {
+      return h.response({
+        ok: false,
+        message: 'No backend API base URL is configured'
+      })
+    }
+
+    const url = `${apiBaseUrl.replace(/\/+$/, '')}${cacheRefreshEndpoint}?${cacheRefreshQuery}`
+    const startMs = Date.now()
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: backendHeaders(),
+        signal: AbortSignal.timeout(cacheRefreshTimeoutMs)
+      })
+      const elapsedMs = Date.now() - startMs
+      const body = await res.text()
+
+      if (!res.ok) {
+        return h.response({
+          ok: false,
+          statusCode: res.status,
+          elapsedMs,
+          message: problemFromBody(body)
+        })
+      }
+
+      const json = JSON.parse(body)
+
+      return h.response({
+        ok: true,
+        statusCode: res.status,
+        elapsedMs,
+        timestamp: json.timestamp ?? null,
+        results: (json.results ?? []).map((result) => ({
+          cache: result.cache,
+          status: result.status,
+          rowCount: result.rowCount ?? null,
+          dataTimestamp: result.dataTimestamp ?? null,
+          elapsedMs: result.elapsedMs ?? null
+        }))
+      })
+    } catch (err) {
+      request.logger.error(
+        `SQLite cache refresh to ${url} failed: ${err.name} ${err.message}`
+      )
+
+      return h.response({
+        ok: false,
+        statusCode: null,
+        elapsedMs: Date.now() - startMs,
+        message:
+          err.name === 'TimeoutError'
+            ? `No response within ${cacheRefreshTimeoutMs / 1000} seconds`
             : err.message
       })
     }

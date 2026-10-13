@@ -141,4 +141,28 @@
 
     <div class="app-health-panel__result" data-holdings-probe-result role="status" aria-live="polite"></div>
   </section>
+
+  {# ── Section 3: SQLite cache refresh (JS driven) ────────── #}
+  <h2 class="govuk-heading-m govuk-!-margin-top-8">3. SQLite cache refresh <code class="app-health-code">/api/admin/sqlite-cache/refresh</code></h2>
+
+  <section
+    class="app-health-panel"
+    data-module="cache-refresh"
+    data-endpoint="{{ cacheRefreshPath }}"
+    data-crumb="{{ crumb }}">
+    <p class="govuk-body-s">
+      Forces both the CPH and read model SQLite caches to reload from S3, using this service's
+      configured backend credentials. This can take a while, and the backend only exposes it when
+      <code class="app-health-code">AdminEndpointsEnabled</code> is turned on.
+    </p>
+
+    {{ govukButton({
+      text: "Refresh cache",
+      classes: "govuk-button--secondary",
+      attributes: { "data-cache-refresh-submit": "true" },
+      preventDoubleClick: true
+    }) }}
+
+    <div class="app-health-panel__result" data-cache-refresh-result role="status" aria-live="polite"></div>
+  </section>
 {% endblock %}

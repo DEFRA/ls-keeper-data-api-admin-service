@@ -1,6 +1,6 @@
 import { createServer } from '../server.js'
 import { statusCodes } from '../common/constants/status-codes.js'
-import { holdingsProbePath } from './controller.js'
+import { holdingsProbePath, cacheRefreshPath } from './controller.js'
 
 describe('#holdingsProbeController', () => {
   let server
@@ -63,5 +63,59 @@ describe('#holdingsProbeController', () => {
     })
 
     expect(statusCode).toBe(statusCodes.forbidden)
+  })
+})
+
+describe('#cacheRefreshController', () => {
+  let server
+
+  const crumbValue = 'test-crumb'
+
+  beforeAll(async () => {
+    server = await createServer()
+    await server.initialize()
+  })
+
+  afterAll(async () => {
+    await server.stop({ timeout: 0 })
+  })
+
+  test('Should report when no backend API base URL is configured', async () => {
+    const { statusCode, result } = await server.inject({
+      method: 'POST',
+      url: cacheRefreshPath,
+      auth: { strategy: 'session', credentials: { user: 'admin' } },
+      headers: { cookie: `crumb=${crumbValue}` },
+      payload: { crumb: crumbValue }
+    })
+
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toEqual({
+      ok: false,
+      message: 'No backend API base URL is configured'
+    })
+  })
+
+  test('Should reject a request without a matching CSRF token', async () => {
+    const { statusCode } = await server.inject({
+      method: 'POST',
+      url: cacheRefreshPath,
+      auth: { strategy: 'session', credentials: { user: 'admin' } },
+      payload: {}
+    })
+
+    expect(statusCode).toBe(statusCodes.forbidden)
+  })
+
+  test('Should redirect to login when not authenticated', async () => {
+    const { statusCode, headers } = await server.inject({
+      method: 'POST',
+      url: cacheRefreshPath,
+      headers: { cookie: `crumb=${crumbValue}` },
+      payload: { crumb: crumbValue }
+    })
+
+    expect(statusCode).toBe(statusCodes.redirect)
+    expect(headers.location).toBe('/auth/login')
   })
 })

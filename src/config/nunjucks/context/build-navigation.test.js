@@ -13,6 +13,7 @@ describe('#buildNavigation', () => {
       { current: false, text: 'Parties', href: '/parties' },
       { current: false, text: 'Countries', href: '/countries' },
       { current: false, text: 'Holdings v2', href: '/holdings' },
+      { current: false, text: 'CPH Associations', href: '/cph-associations' },
       { current: false, text: 'Health Check', href: '/health-check' }
     ])
   })
@@ -40,8 +41,13 @@ describe('#buildNavigation', () => {
     expect(result[4].current).toBe(true)
   })
 
+  test('Should highlight CPH Associations on /cph-associations path', () => {
+    const result = buildNavigation(mockRequest({ path: '/cph-associations' }))
+    expect(result[5].current).toBe(true)
+  })
+
   test('Should highlight Health Check on /health-check path', () => {
     const result = buildNavigation(mockRequest({ path: '/health-check' }))
-    expect(result[5].current).toBe(true)
+    expect(result[6].current).toBe(true)
   })
 })

@@ -1,0 +1,68 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  <p class="govuk-body">Look up which CPHs an email address is associated with, and in what role.</p>
+
+  <form method="get" action="/cph-associations" class="govuk-!-margin-bottom-6">
+    {{ govukInput({
+      label: { text: "Email address" },
+      id: "email",
+      name: "email",
+      type: "email",
+      spellcheck: false,
+      autocomplete: "off",
+      value: email,
+      classes: "govuk-!-width-two-thirds"
+    }) }}
+
+    {{ govukButton({
+      text: "Search"
+    }) }}
+  </form>
+
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">' + (apiError.message if apiError.message else 'Unable to read CPH associations from the backend API') + (' (HTTP ' + apiError.statusCode + ')' if apiError.statusCode else '') + '</p>'
+    }) }}
+  {% elif associations.length > 0 %}
+    <p class="govuk-body">{{ associations.length }} association{{ "s" if associations.length != 1 }} found for <strong>{{ email }}</strong></p>
+
+    <table class="govuk-table">
+      <thead class="govuk-table__header">
+        <tr class="govuk-table__row">
+          <th class="govuk-table__header" scope="col">CPH</th>
+          <th class="govuk-table__header" scope="col">Role</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for association in associations %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">
+              {% if association.holdingHref %}
+                <a class="govuk-link" href="{{ association.holdingHref }}">{{ association.cph }}</a>
+              {% else %}
+                {{ association.cph }}
+              {% endif %}
+            </td>
+            <td class="govuk-table__cell">
+              {{ govukTag({ text: association.role, classes: "govuk-tag--blue" }) }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% elif searched %}
+    <p class="govuk-body">No CPH associations found for <strong>{{ email }}</strong></p>
+  {% endif %}
+{% endblock %}

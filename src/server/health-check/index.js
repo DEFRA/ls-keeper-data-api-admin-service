@@ -1,7 +1,9 @@
 import {
   healthCheckController,
   holdingsProbeController,
-  holdingsProbePath
+  holdingsProbePath,
+  cacheRefreshController,
+  cacheRefreshPath
 } from './controller.js'
 
 export const healthCheck = {
@@ -18,6 +20,11 @@ export const healthCheck = {
           method: 'POST',
           path: holdingsProbePath,
           ...holdingsProbeController
+        },
+        {
+          method: 'POST',
+          path: cacheRefreshPath,
+          ...cacheRefreshController
         }
       ])
     }

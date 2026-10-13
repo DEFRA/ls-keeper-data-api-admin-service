@@ -8,6 +8,7 @@ import { sites } from './sites/index.js'
 import { parties } from './parties/index.js'
 import { countries } from './countries/index.js'
 import { holdings } from './holdings/index.js'
+import { cphAssociations } from './cph-associations/index.js'
 import { healthCheck } from './health-check/index.js'
 import { serveStaticFiles } from './common/helpers/serve-static-files.js'
 
@@ -30,6 +31,7 @@ export const router = {
         parties,
         countries,
         holdings,
+        cphAssociations,
         healthCheck
       ])
 

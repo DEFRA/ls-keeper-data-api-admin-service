@@ -1,16 +1,7 @@
-const resultClasses = {
-  pending: 'app-health-panel__result--pending',
-  success: 'app-health-panel__result--success',
-  error: 'app-health-panel__result--error'
-}
-
-function render(resultEl, state, message) {
-  resultEl.className = `app-health-panel__result ${resultClasses[state]}`
-  resultEl.textContent = message
-}
+import { renderPanelResult, postPanelRequest } from './panel-result.js'
 
 function describeFailure(body) {
-  if (body.statusCode === null) {
+  if (body.statusCode === null || body.statusCode === undefined) {
     return `Request failed — ${body.message ?? 'no response from the API'}`
   }
 
@@ -47,33 +38,24 @@ function initHoldingsProbe(panel) {
   button.addEventListener('click', async (event) => {
     event.preventDefault()
     button.disabled = true
-    render(resultEl, 'pending', 'Checking…')
+    renderPanelResult(resultEl, 'pending', 'Checking…')
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ authorization: input.value, crumb })
+      const body = await postPanelRequest(endpoint, crumb, {
+        authorization: input.value
       })
 
-      if (!response.ok) {
-        render(
-          resultEl,
-          'error',
-          `Could not run the check — the admin service returned HTTP ${response.status}`
-        )
-        return
-      }
-
-      const body = await response.json()
-
-      render(
+      renderPanelResult(
         resultEl,
         body.ok ? 'success' : 'error',
         body.ok ? describeSuccess(body) : describeFailure(body)
       )
     } catch (error) {
-      render(resultEl, 'error', `Could not run the check — ${error.message}`)
+      renderPanelResult(
+        resultEl,
+        'error',
+        `Could not run the check — ${error.message}`
+      )
     } finally {
       button.disabled = false
     }

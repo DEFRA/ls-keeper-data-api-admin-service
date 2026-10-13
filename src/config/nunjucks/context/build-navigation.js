@@ -6,16 +6,6 @@ export function buildNavigation(request) {
       current: request?.path === '/'
     },
     {
-      text: 'Scans',
-      href: '/scans',
-      current: request?.path?.startsWith('/scans')
-    },
-    {
-      text: 'Queues',
-      href: '/queues',
-      current: request?.path?.startsWith('/queues')
-    },
-    {
       text: 'Sites',
       href: '/sites',
       current: request?.path?.startsWith('/sites')
@@ -29,6 +19,11 @@ export function buildNavigation(request) {
       text: 'Countries',
       href: '/countries',
       current: request?.path?.startsWith('/countries')
+    },
+    {
+      text: 'Holdings v2',
+      href: '/holdings',
+      current: request?.path?.startsWith('/holdings')
     },
     {
       text: 'Health Check',

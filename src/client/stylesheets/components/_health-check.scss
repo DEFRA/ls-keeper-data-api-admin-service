@@ -44,3 +44,32 @@
   border-left: 4px solid govuk-colour("red");
   background: govuk-tint(govuk-colour("red"), 95);
 }
+
+.app-health-panel {
+  padding: govuk-spacing(4);
+  border: 1px solid $govuk-border-colour;
+  background: govuk-colour("black", $variant: "tint-95");
+}
+
+.app-health-panel__result {
+  @include govuk-font($size: 19);
+
+  &:not(:empty) {
+    padding: govuk-spacing(3);
+    border-left: 4px solid $govuk-border-colour;
+    background: govuk-colour("white");
+  }
+}
+
+.app-health-panel__result--success:not(:empty) {
+  border-left-color: govuk-colour("green");
+}
+
+.app-health-panel__result--error:not(:empty) {
+  border-left-color: govuk-colour("red");
+}
+
+.app-section-list__item {
+  padding: govuk-spacing(4) 0;
+  border-bottom: 1px solid $govuk-border-colour;
+}

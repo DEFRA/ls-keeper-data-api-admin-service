@@ -4,6 +4,8 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
 
 {% block content %}
   {{ super() }}
@@ -108,91 +110,35 @@
     </div>
   {% endif %}
 
-  {# ── API connectivity probes ─────────────────────────────── #}
-  {% for probe in probes %}
-    <h2 class="govuk-heading-m govuk-!-margin-top-8">
-      {{ loop.index + 1 }}. {{ probe.label }} <code class="app-health-code">{{ probe.endpointPath }}</code>
-    </h2>
+  {# ── Section 2: Holdings API access check (JS driven) ───── #}
+  <h2 class="govuk-heading-m govuk-!-margin-top-8">2. Holdings API access <code class="app-health-code">/api/v2/holdings</code></h2>
 
-    {% if probe.ok %}
-      <div class="app-health-overview">
-        {{ govukTag({ text: "OK", classes: "govuk-tag--green" }) }}
-        <span class="govuk-body govuk-!-margin-left-2 govuk-!-margin-bottom-0">
-          HTTP {{ probe.statusCode }} &middot; Responded in {{ probe.elapsedMs }}ms
-        </span>
-      </div>
+  <section
+    class="app-health-panel"
+    data-module="holdings-probe"
+    data-endpoint="{{ holdingsProbePath }}"
+    data-crumb="{{ crumb }}">
+    <p class="govuk-body-s">
+      Paste an <code class="app-health-code">Authorization</code> header value (for example
+      <code class="app-health-code">Bearer &lt;token&gt;</code> or <code class="app-health-code">Basic &lt;base64&gt;</code>).
+      It is sent verbatim with a single request and is never stored.
+    </p>
 
-      {% if probe.type === "queue" and probe.result %}
-        {% set queueRows = [
-          { key: { text: "Approx. message count" }, value: { text: probe.result.approximateMessageCount } },
-          { key: { text: "Messages not visible (in flight)" }, value: { text: probe.result.approximateMessagesNotVisible } },
-          { key: { text: "Messages delayed" }, value: { text: probe.result.approximateMessagesDelayed } }
-        ] %}
+    {{ govukInput({
+      label: { text: "Authorization header value" },
+      id: "holdings-probe-authorization",
+      name: "authorization",
+      autocomplete: "off",
+      spellcheck: false,
+      classes: "govuk-!-width-three-quarters"
+    }) }}
 
-        {% if probe.result.checkedAt %}
-          {% set queueRows = queueRows.concat([
-            { key: { text: "Checked at" }, value: { text: probe.result.checkedAt | formatDate("d MMM yyyy HH:mm:ss") } }
-          ]) %}
-        {% endif %}
+    {{ govukButton({
+      text: "Check access",
+      attributes: { "data-holdings-probe-submit": "true" },
+      preventDoubleClick: true
+    }) }}
 
-        {% if probe.result.queueUrl %}
-          {% set queueRows = queueRows.concat([
-            { key: { text: "Queue URL" }, value: { html: '<code class="app-health-code">' + probe.result.queueUrl + '</code>' } }
-          ]) %}
-        {% endif %}
-
-        {{ govukSummaryList({ rows: queueRows }) }}
-      {% endif %}
-
-      {{ govukDetails({
-        summaryText: "Raw JSON response",
-        html: '<pre class="app-health-pre">' + (probe.json | dump(2)) + '</pre>'
-      }) }}
-
-    {% elif probe.error %}
-      {{ govukNotificationBanner({
-        html: '<h3 class="govuk-notification-banner__heading">Failed to reach ' + probe.endpointPath + '</h3>'
-      }) }}
-
-      <div class="app-health-error">
-        {{ govukSummaryList({
-          rows: [
-            { key: { text: "Error type" }, value: { html: '<code class="app-health-code">' + probe.error.name + '</code>' } },
-            { key: { text: "Message" }, value: { text: probe.error.message } },
-            { key: { text: "Error code" }, value: { html: '<code class="app-health-code">' + (probe.error.code if probe.error.code else "—") + '</code>' } },
-            { key: { text: "Elapsed" }, value: { text: probe.elapsedMs ~ "ms" } }
-          ]
-        }) }}
-
-        {% if probe.error.stack %}
-          {{ govukDetails({
-            summaryText: "Full stack trace",
-            html: '<pre class="app-health-pre">' + probe.error.stack + '</pre>'
-          }) }}
-        {% endif %}
-      </div>
-
-    {% else %}
-      {{ govukNotificationBanner({
-        html: '<h3 class="govuk-notification-banner__heading">Unexpected response from ' + probe.endpointPath + '</h3>'
-      }) }}
-
-      <div class="app-health-error">
-        {{ govukSummaryList({
-          rows: [
-            { key: { text: "HTTP status" }, value: { html: '<code class="app-health-code">' + probe.statusCode + '</code>' } },
-            { key: { text: "Elapsed" }, value: { text: probe.elapsedMs ~ "ms" } }
-          ]
-        }) }}
-
-        {% if probe.rawBody %}
-          {{ govukDetails({
-            summaryText: "Raw response body",
-            html: '<pre class="app-health-pre">' + probe.rawBody + '</pre>'
-          }) }}
-        {% endif %}
-      </div>
-    {% endif %}
-  {% endfor %}
-
+    <div class="app-health-panel__result" data-holdings-probe-result role="status" aria-live="polite"></div>
+  </section>
 {% endblock %}

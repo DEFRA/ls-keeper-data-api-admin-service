@@ -50,11 +50,10 @@ describe('context and cache', () => {
           getAssetPath: expect.any(Function),
           navigation: [
             { current: true, text: 'Home', href: '/' },
-            { current: false, text: 'Scans', href: '/scans' },
-            { current: false, text: 'Queues', href: '/queues' },
             { current: false, text: 'Sites', href: '/sites' },
             { current: false, text: 'Parties', href: '/parties' },
             { current: false, text: 'Countries', href: '/countries' },
+            { current: false, text: 'Holdings v2', href: '/holdings' },
             { current: false, text: 'Health Check', href: '/health-check' }
           ],
           serviceName: 'Keeper Data API Admin Service',
@@ -136,11 +135,10 @@ describe('context and cache', () => {
           getAssetPath: expect.any(Function),
           navigation: [
             { current: true, text: 'Home', href: '/' },
-            { current: false, text: 'Scans', href: '/scans' },
-            { current: false, text: 'Queues', href: '/queues' },
             { current: false, text: 'Sites', href: '/sites' },
             { current: false, text: 'Parties', href: '/parties' },
             { current: false, text: 'Countries', href: '/countries' },
+            { current: false, text: 'Holdings v2', href: '/holdings' },
             { current: false, text: 'Health Check', href: '/health-check' }
           ],
           serviceName: 'Keeper Data API Admin Service',

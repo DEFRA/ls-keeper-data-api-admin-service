@@ -1,0 +1,123 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% block content %}
+  {{ super() }}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if apiError %}
+    {{ govukNotificationBanner({
+      html: '<p class="govuk-body">Unable to read this holding from the backend API' + (' (HTTP ' + apiError.statusCode + ')' if apiError.statusCode else '') + '.</p>'
+    }) }}
+  {% endif %}
+
+  {% if holding %}
+    {% if dataTimestamp %}
+      <p class="govuk-body-s govuk-hint">Snapshot taken {{ dataTimestamp | formatDate("d MMM yyyy HH:mm:ss") }}</p>
+    {% endif %}
+
+    <h2 class="govuk-heading-m">Details</h2>
+    {{ govukSummaryList({
+      rows: [
+        { key: { text: "CPH" }, value: { text: holding.identifier } },
+        { key: { text: "Name" }, value: { text: holding.name or "—" } },
+        { key: { text: "Type" }, value: { text: holding.holdingType or "—" } },
+        { key: { text: "Start date" }, value: { text: holding.startDate | formatDate if holding.startDate else "—" } },
+        { key: { text: "End date" }, value: { text: holding.endDate | formatDate if holding.endDate else "—" } },
+        { key: { text: "Allowed species" }, value: { text: holding.allowedSpecies | join(", ") if holding.allowedSpecies.length else "—" } }
+      ]
+    }) }}
+
+    {% if holding.location %}
+      <h2 class="govuk-heading-m">Location</h2>
+      {% set locationRows = [
+        { key: { text: "OS map ref" }, value: { text: holding.location.osMapReference or "—" } },
+        { key: { text: "Easting" }, value: { text: holding.location.easting or "—" } },
+        { key: { text: "Northing" }, value: { text: holding.location.northing or "—" } }
+      ] %}
+      {% if holding.location.address %}
+        {% set locationRows = locationRows.concat([
+          { key: { text: "UDPRN" }, value: { text: holding.location.address.udprn or "—" } },
+          { key: { text: "Address line 1" }, value: { text: holding.location.address.addressLine1 or "—" } },
+          { key: { text: "Address line 2" }, value: { text: holding.location.address.addressLine2 or "—" } },
+          { key: { text: "Town" }, value: { text: holding.location.address.postTown or "—" } },
+          { key: { text: "Locality" }, value: { text: holding.location.address.locality or "—" } },
+          { key: { text: "Postcode" }, value: { text: holding.location.address.postcode or "—" } },
+          { key: { text: "Country" }, value: { text: holding.location.address.country or "—" } }
+        ]) %}
+      {% endif %}
+      {{ govukSummaryList({ rows: locationRows }) }}
+    {% endif %}
+
+    {% if holding.associations.length > 0 %}
+      <h2 class="govuk-heading-m">Associations</h2>
+      <table class="govuk-table">
+        <thead class="govuk-table__header">
+          <tr class="govuk-table__row">
+            <th class="govuk-table__header" scope="col">Name</th>
+            <th class="govuk-table__header" scope="col">Customer number</th>
+            <th class="govuk-table__header" scope="col">Type</th>
+            <th class="govuk-table__header" scope="col">Contact</th>
+            <th class="govuk-table__header" scope="col">Address</th>
+            <th class="govuk-table__header" scope="col">Roles</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for a in holding.associations %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ a.name }}</td>
+              <td class="govuk-table__cell">{{ a.customerNumber or "—" }}</td>
+              <td class="govuk-table__cell">{{ a.partyType or "—" }}</td>
+              <td class="govuk-table__cell">
+                {{ a.email or "" }}
+                {% if a.mobile %}<br>{{ a.mobile }}{% endif %}
+                {% if a.telephone %}<br>{{ a.telephone }}{% endif %}
+                {% if not a.email and not a.mobile and not a.telephone %}—{% endif %}
+              </td>
+              <td class="govuk-table__cell">{{ a.address or "—" }}</td>
+              <td class="govuk-table__cell">
+                {% for role in a.roles %}
+                  {{ govukTag({ text: role.code, classes: "govuk-tag--blue" }) }}
+                  {% if role.species %}<span class="govuk-body-s">{{ role.species }}</span>{% endif %}
+                  {% if not loop.last %}<br>{% endif %}
+                {% else %}
+                  —
+                {% endfor %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {% if holding.marks.length > 0 %}
+      <h2 class="govuk-heading-m">Marks</h2>
+      <table class="govuk-table">
+        <thead class="govuk-table__header">
+          <tr class="govuk-table__row">
+            <th class="govuk-table__header" scope="col">Mark</th>
+            <th class="govuk-table__header" scope="col">Species</th>
+            <th class="govuk-table__header" scope="col">Start date</th>
+            <th class="govuk-table__header" scope="col">End date</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for m in holding.marks %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ m.mark }}</td>
+              <td class="govuk-table__cell">{{ m.species or "—" }}</td>
+              <td class="govuk-table__cell">{{ m.startDate | formatDate if m.startDate else "—" }}</td>
+              <td class="govuk-table__cell">{{ m.endDate | formatDate if m.endDate else "—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  {% endif %}
+{% endblock %}
